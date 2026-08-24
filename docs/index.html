@@ -1,4 +1,4 @@
-﻿
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -240,7 +240,7 @@
     }
     details.family summary::-webkit-details-marker { display:none; }
     details.family summary::after { content:"+"; font-weight:800; color:var(--muted); }
-    details.family[open] summary::after { content:"â€“"; }
+    details.family[open] summary::after { content:"–"; }
     details.family[open] summary { background:var(--yellow4); }
     .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:10px; }
     .preset {
@@ -347,7 +347,7 @@ POWER</textarea>
       </div>
     </div>
     <div class="field">
-      <label>TamaÃ±o</label>
+      <label>Tamaño</label>
       <div class="field-row">
         <input type="range" id="fontSize" min="20" max="300" value="150">
         <span class="range-val" id="fontSizeVal">150</span>
@@ -500,7 +500,7 @@ POWER</textarea>
       <label>Rotacion</label>
       <div class="field-row">
         <input type="range" id="rotation" min="-180" max="180" value="0">
-        <span class="range-val" id="rotationVal">0Â°</span>
+        <span class="range-val" id="rotationVal">0°</span>
       </div>
     </div>
     <div class="field">
@@ -586,7 +586,7 @@ const $=id=>document.getElementById(id);
 const W=1280, H=720;
 const FONTS=["Archivo Black","Anton","Bebas Neue","Barlow Condensed","Oswald","Montserrat","Poppins","Inter","Space Grotesk","Space Mono","Playfair Display","DM Sans","Work Sans","Abril Fatface","Pacifico","Rubik Mono One"];
 const DECODER_CHARS="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-const MATRIX_CHARS="01ã‚¢ã‚«ã‚µã‚¿ãƒŠãƒãƒžãƒ¤ãƒ©ãƒ¯ABCDEF";
+const MATRIX_CHARS="01アカサタナハマヤラワABCDEF";
 
 function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 function hash(n){ const s=Math.sin(n*127.1)*43758.5453; return s-Math.floor(s); }
@@ -975,7 +975,7 @@ function syncUI(){
   $('lineH').value=Math.round(state.lineH*10); $('lineHVal').textContent=state.lineH.toFixed(1);
   $('strokeW').value=state.strokeW; $('strokeWVal').textContent=state.strokeW;
   $('opacity').value=state.opacity; $('opacityVal').textContent=state.opacity+'%';
-  $('rotation').value=state.rotation; $('rotationVal').textContent=state.rotation+'Â°';
+  $('rotation').value=state.rotation; $('rotationVal').textContent=state.rotation+'°';
   $('scale').value=state.scale; $('scaleVal').textContent=state.scale+'%';
   $('blur').value=state.blur; $('blurVal').textContent=state.blur+'px';
   $('stagger').value=state.stagger; $('staggerVal').textContent=state.stagger+'ms';
@@ -1065,7 +1065,7 @@ wireRange('letterSpace','letterSpace');
 wireRange('lineH','lineH','',0.1);
 wireRange('strokeW','strokeW');
 wireRange('opacity','opacity','%');
-wireRange('rotation','rotation','Â°');
+wireRange('rotation','rotation','°');
 wireRange('scale','scale','%');
 wireRange('blur','blur','px');
 wireRange('stagger','stagger','ms');
@@ -1123,7 +1123,7 @@ window.addEventListener('touchmove',e=>{ if(scrubbing)scrub(e); });
 window.addEventListener('touchend',()=>scrubbing=false);
 
 $('btnNew').addEventListener('click',()=>{
-  if(!confirm('Â¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
+  if(!confirm('¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
   state=Object.assign({},DEFAULT_STATE,{presetParams:{}});
   localStorage.removeItem('fap-textmotion');
   syncUI();
@@ -1373,4 +1373,3 @@ window.addEventListener('resize',fitCanvas);
 </script>
 </body>
 </html>
-
