@@ -792,7 +792,7 @@ function render(ctx,t,forceBg){
       const C={ch,i:charIdx,word:Math.max(0,wIdx),charW:widths[ci],totalW,lineIdx:li,W,H,t,e,st,p,totalChars,state:S};
       const T=preset.fx(C,P)||{};
       ctx.save();
-      const cx=x+(T.dx||0)+(T.kern||0)*(ci-chars.length/2);
+      const cx=x+widths[ci]/2+(T.dx||0)+(T.kern||0)*(ci-chars.length/2);
       const cy=y+(T.dy||0);
       ctx.translate(cx,cy);
       ctx.rotate((T.rot||0)*Math.PI/180);
