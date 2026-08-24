@@ -590,8 +590,6 @@ POWER</textarea>
 const $=id=>document.getElementById(id);
 const W=1280, H=720;
 const FONTS=["Archivo Black","Anton","Bebas Neue","Barlow Condensed","Oswald","Montserrat","Poppins","Inter","Space Grotesk","Space Mono","Playfair Display","DM Sans","Work Sans","Abril Fatface","Pacifico","Rubik Mono One"];
-const DECODER_CHARS="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-const MATRIX_CHARS="01アカサタナハマヤラワABCDEF";
 
 function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 function hash(n){ const s=Math.sin(n*127.1)*43758.5453; return s-Math.floor(s); }
@@ -621,10 +619,10 @@ const PRESETS=[
   { id:'zoomIn', family:'Entradas', name:'Zoom in', fx:C=>({scX:0.2+0.8*C.e, scY:0.2+0.8*C.e, alpha:C.e}) },
 
   { id:'typewriter', family:'Maquina', name:'Maquina de escribir', defStagger:0, defInDur:2, fx:C=>({alpha:(C.p*C.totalChars-C.i)>0?1:0}) },
-  { id:'decoder', family:'Maquina', name:'Decodificador', defStagger:30, params:[{key:'speed',label:'Velocidad',min:5,max:40,step:1,def:20}], fx:(C,P)=>{ let ch=C.ch; if(C.st<0.85&&C.st>0&&C.ch!==' '){ ch=DECODER_CHARS[Math.floor(hash(C.i+Math.floor(C.t*P.speed)))%44]; } return {char:ch, alpha:Math.min(1,C.st*3)}; } },
-  { id:'glitchWriter', family:'Maquina', name:'Escritura glitch', defStagger:20, params:[{key:'speed',label:'Velocidad',min:5,max:40,step:1,def:20}], fx:(C,P)=>{ let ch=C.ch; const g=C.st<1&&C.st>0&&C.ch!==' '; if(g)ch=DECODER_CHARS[Math.floor(hash(C.i+Math.floor(C.t*P.speed)))%44]; const dx=g?(hash(C.i+C.t*30)-0.5)*8:0; return {char:ch, dx, alpha:Math.min(1,C.st*4)}; } },
-  { id:'scramble', family:'Maquina', name:'Mezcla', defStagger:25, fx:C=>{ if(C.ch===' '||C.st>=1)return {alpha:Math.min(1,C.st*3)}; const flat=C.state.text.replace(/\n/g,'').split(''); const j=(C.i+Math.floor((1-C.st)*(C.totalChars-1)*hash(C.i+3)))%C.totalChars; return {char:flat[j]||C.ch, alpha:1}; } },
-  { id:'matrixRain', family:'Maquina', name:'Lluvia matrix', defStagger:0, defInDur:2.5, params:[{key:'speed',label:'Velocidad',min:5,max:30,step:1,def:12}], fx:(C,P)=>{ const done=C.st>=1; const ch=done?C.ch:MATRIX_CHARS[Math.floor(hash(C.i*7+Math.floor(C.t*P.speed)))%16]; return {char:ch, dy:(1-C.e)*-60, alpha:Math.min(1,C.e*2)}; } },
+  { id:'decoder', family:'Maquina', name:'Flash letra a letra', defStagger:60, defInDur:2, fx:C=>({alpha:Math.min(1,C.st*3), scX:0.7+0.3*Math.min(1,C.st*2), scY:0.7+0.3*Math.min(1,C.st*2)}) },
+  { id:'glitchWriter', family:'Maquina', name:'Escritura glitch', defStagger:25, params:[{key:'speed',label:'Velocidad',min:2,max:20,step:1,def:10}], fx:(C,P)=>{ const g=C.st>0&&C.st<1; const dx=g?(hash(C.i+C.t*P.speed*2)-0.5)*8:0; const dy=g?(hash(C.i+50+C.t*P.speed*2)-0.5)*6:0; return {dx, dy, alpha:Math.min(1,C.st*4)}; } },
+  { id:'scramble', family:'Maquina', name:'Mezcla', defStagger:40, params:[{key:'power',label:'Distancia',min:20,max:150,step:5,def:80}], fx:(C,P)=>{ const d=(1-C.st)*P.power; const a=hash(C.i)*Math.PI*2; return {dx:Math.cos(a)*d, dy:Math.sin(a)*d, rot:(1-C.st)*(hash(C.i+9)-0.5)*120, alpha:Math.min(1,C.st*3)}; } },
+  { id:'matrixRain', family:'Maquina', name:'Lluvia', defStagger:40, defInDur:2.5, fx:C=>{ const T={dy:(1-C.st)*-90, alpha:Math.min(1,C.st*3)}; if(C.st<1)T.dupes=[{dy:18,alpha:0.3},{dy:36,alpha:0.12}]; return T; } },
 
   { id:'kernExpand', family:'Espaciado', name:'Expande espaciado', defStagger:25, fx:C=>({kern:(1-C.e)*60, alpha:C.e}) },
   { id:'kernCollapse', family:'Espaciado', name:'Colapsa espaciado', defStagger:25, fx:C=>({extra:(1-C.e)*60, alpha:Math.min(1,C.e*2)}) },
