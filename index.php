@@ -443,7 +443,10 @@ POWER</textarea>
 
   <aside class="panel panel-right">
 
-    <div class="sec-title">Animacion &mdash; 50 presets</div>
+    <div class="sec-title">Animacion &mdash; 105 presets</div>
+    <div class="field">
+      <input type="text" id="presetSearch" placeholder="Buscar efecto...">
+    </div>
     <div id="presetList"></div>
 
     <div class="sec-title">Parametros del preset</div>
@@ -670,7 +673,67 @@ const PRESETS=[
   { id:'gravityFall', family:'Salida y ambient', name:'Caida libre', defStagger:30, params:[{key:'power',label:'Altura',min:80,max:400,step:10,def:200}], fx:(C,P)=>({dy:(1-C.e)*-P.power+Math.abs(Math.sin(C.e*Math.PI*2))*P.power*0.5, alpha:Math.min(1,C.e*2)}) },
   { id:'scatter', family:'Salida y ambient', name:'Dispersion', defStagger:0, params:[{key:'power',label:'Alcance',min:100,max:400,step:10,def:250}], fx:(C,P)=>({dx:(hash(C.i*5)-0.5)*2*P.power*(1-C.e), dy:(hash(C.i*11)-0.5)*2*P.power*(1-C.e), rot:(hash(C.i*7)-0.5)*90*(1-C.e), alpha:Math.min(1,C.e*2)}) },
   { id:'windBlow', family:'Salida y ambient', name:'Soplo de viento', defStagger:40, params:[{key:'power',label:'Fuerza',min:100,max:400,step:10,def:260}], fx:(C,P)=>({dx:(1-C.e)*P.power, dy:Math.sin(C.i+C.t*10)*(1-C.e)*20, rot:(1-C.e)*10, alpha:C.e}) },
-  { id:'marqueeLoop', family:'Salida y ambient', name:'Marquesina', defStagger:0, defInDur:0.5, defEasing:'linear', params:[{key:'speed',label:'Velocidad',min:50,max:300,step:10,def:120}], fx:(C,P)=>{ const span=C.totalW+400; const off=(C.t*P.speed)%span; return {dx:off, dupes:[{dx:off-span, alpha:1}], alpha:Math.min(1,C.e*2)}; } }
+  { id:'marqueeLoop', family:'Salida y ambient', name:'Marquesina', defStagger:0, defInDur:0.5, defEasing:'linear', params:[{key:'speed',label:'Velocidad',min:50,max:300,step:10,def:120}], fx:(C,P)=>{ const span=C.totalW+400; const off=(C.t*P.speed)%span; return {dx:off, dupes:[{dx:off-span, alpha:1}], alpha:Math.min(1,C.e*2)}; } },
+
+  { id:'wipeRight', family:'Revelados', name:'Barrido derecha', defStagger:0, defInDur:2, fx:C=>({clip:C.st, clipDir:'lr', alpha:1}) },
+  { id:'wipeLeft', family:'Revelados', name:'Barrido izquierda', defStagger:0, defInDur:2, fx:C=>({clip:C.st, clipDir:'rl', alpha:1}) },
+  { id:'wipeDown', family:'Revelados', name:'Barrido hacia abajo', defStagger:0, defInDur:2, fx:C=>({clip:C.st, clipDir:'tb', alpha:1}) },
+  { id:'wipeUp', family:'Revelados', name:'Barrido hacia arriba', defStagger:0, defInDur:2, fx:C=>({clip:C.st, clipDir:'bt', alpha:1}) },
+  { id:'irisOpen', family:'Revelados', name:'Apertura central', defStagger:0, defInDur:2, fx:C=>({clip:C.st, clipDir:'center', alpha:1}) },
+
+  { id:'rubberBand', family:'Elasticos', name:'Banda elastica', defStagger:35, fx:C=>({scX:1+Math.sin(C.st*Math.PI*2)*0.35*(1-C.st*0.6), scY:1-Math.sin(C.st*Math.PI*2)*0.35*(1-C.st*0.6), alpha:Math.min(1,C.st*3)}) },
+  { id:'heartBeat', family:'Elasticos', name:'Latido', defStagger:45, fx:C=>({scX:1+Math.abs(Math.sin(C.st*Math.PI*3))*0.3*(1-C.st*0.4), scY:1+Math.abs(Math.sin(C.st*Math.PI*3))*0.3*(1-C.st*0.4), alpha:Math.min(1,C.st*3)}) },
+  { id:'dizzy', family:'Elasticos', name:'Mareo', defStagger:30, fx:C=>({rot:(1-C.st)*220*(hash(C.i)>0.5?1:-1), blur:(1-C.st)*10, alpha:Math.min(1,C.st*3)}) },
+  { id:'sneeze', family:'Elasticos', name:'Estornudo', defStagger:50, fx:C=>({scX:1+Math.sin(C.st*Math.PI*2)*0.5, scY:1+Math.sin(C.st*Math.PI*2)*0.5, blur:(1-C.st)*14, alpha:Math.min(1,C.st*4)}) },
+  { id:'tickTock', family:'Elasticos', name:'Tic-tac', defStagger:40, fx:C=>({rot:Math.sin(C.st*Math.PI*4)*25*(1-C.st*0.7), alpha:Math.min(1,C.st*3)}) },
+
+  { id:'meltDown', family:'Liquido', name:'Derretido', defStagger:25, fx:C=>({dy:(1-C.st)*-40, scY:1+(1-C.st)*1.2, blur:(1-C.st)*8, alpha:Math.min(1,C.st*2)}) },
+  { id:'waveSkew', family:'Liquido', name:'Onda sesgada', defStagger:0, params:[{key:'amp',label:'Amplitud',min:5,max:50,step:5,def:20},{key:'speed',label:'Velocidad',min:1,max:15,step:1,def:5}], fx:(C,P)=>({skew:Math.sin(C.t*P.speed+C.i*0.5)*P.amp/100*Math.min(1,C.e*2), alpha:Math.min(1,C.e*2)}) },
+  { id:'splash', family:'Liquido', name:'Salpicadura', defStagger:35, fx:C=>({dy:(1-C.st)*-120+Math.abs(Math.sin(C.st*Math.PI))*40, scX:1+Math.sin(C.st*Math.PI)*0.3, scY:1-Math.sin(C.st*Math.PI)*0.3, alpha:Math.min(1,C.st*2)}) },
+  { id:'jellySkew', family:'Liquido', name:'Gelatina sesgada', defStagger:0, params:[{key:'amp',label:'Amplitud',min:5,max:40,step:5,def:20},{key:'speed',label:'Velocidad',min:2,max:12,step:1,def:5}], fx:(C,P)=>({skew:Math.sin(C.t*P.speed+C.i)*P.amp/100*Math.min(1,C.e*2), alpha:Math.min(1,C.e*2)}) },
+  { id:'liquidDrop', family:'Liquido', name:'Gota', defStagger:30, params:[{key:'power',label:'Altura',min:40,max:200,step:10,def:100}], fx:(C,P)=>({dy:(1-C.st)*-P.power+Math.abs(Math.sin(C.st*Math.PI))*P.power*0.35, scY:1+(1-C.st)*0.8, alpha:Math.min(1,C.st*2)}) },
+
+  { id:'spiralIn', family:'Caminos', name:'Espiral', defStagger:45, params:[{key:'power',label:'Alcance',min:50,max:250,step:10,def:160}], fx:(C,P)=>{ const ang=C.i*1.2+(1-C.st)*Math.PI*2; const r=(1-C.st)*P.power; return {dx:Math.cos(ang)*r, dy:Math.sin(ang)*r*0.5, rot:(1-C.st)*180, alpha:Math.min(1,C.st*2)}; } },
+  { id:'arcIn', family:'Caminos', name:'Arco', defStagger:40, fx:C=>({dy:-Math.sin(C.st*Math.PI)*100, rot:(1-C.st)*-60, alpha:Math.min(1,C.st*2)}) },
+  { id:'zigzag', family:'Caminos', name:'Zigzag', defStagger:30, params:[{key:'power',label:'Salto',min:40,max:200,step:10,def:120}], fx:(C,P)=>({dx:(1-C.st)*P.power*((C.i%2)?-1:1), dy:(1-C.st)*P.power*0.4*((Math.floor(C.i/2)%2)?-1:1), alpha:C.st}) },
+  { id:'loopLoop', family:'Caminos', name:'Rizo', defStagger:45, params:[{key:'power',label:'Tamano',min:20,max:120,step:10,def:70}], fx:(C,P)=>({dy:-Math.sin(C.st*Math.PI*2)*P.power, dx:-Math.cos(C.st*Math.PI*2)*P.power*0.3+P.power*0.3, alpha:Math.min(1,C.st*2)}) },
+  { id:'stairs', family:'Caminos', name:'Escaleras', defStagger:20, params:[{key:'power',label:'Peldano',min:20,max:100,step:5,def:60}], fx:(C,P)=>({dy:(1-C.st)*P.power*Math.floor(hash(C.i)*4), dx:(1-C.st)*P.power*0.6, alpha:Math.min(1,C.st*2)}) },
+
+  { id:'pingPong', family:'Fisica', name:'Ping-pong', defStagger:0, defEasing:'linear', params:[{key:'amp',label:'Recorrido',min:20,max:120,step:10,def:80},{key:'speed',label:'Velocidad',min:1,max:12,step:1,def:3}], fx:(C,P)=>({dx:Math.abs(((C.t*P.speed*2+C.i*0.8)%2)-1)*P.amp-P.amp/2, alpha:Math.min(1,C.e*2)}) },
+  { id:'springWobble', family:'Fisica', name:'Muelle', defStagger:0, params:[{key:'amp',label:'Amplitud',min:5,max:40,step:1,def:18},{key:'speed',label:'Velocidad',min:2,max:15,step:1,def:5}], fx:(C,P)=>({rot:Math.sin(C.t*P.speed+C.i*0.7)*P.amp*Math.min(1,C.e*2), alpha:Math.min(1,C.e*2)}) },
+  { id:'ricochet', family:'Fisica', name:'Ricochet', defStagger:30, params:[{key:'power',label:'Potencia',min:40,max:220,step:10,def:140}], fx:(C,P)=>{ const dir=hash(C.i)>0.5?1:-1; return {dx:dir*(1-C.st)*P.power*0.5, dy:(1-C.st)*-P.power+Math.abs(Math.sin(C.st*Math.PI*3))*P.power*0.7, alpha:Math.min(1,C.st*2)}; } },
+  { id:'pendulumSwing', family:'Fisica', name:'Pendulo de cuerda', defStagger:0, params:[{key:'amp',label:'Amplitud',min:10,max:80,step:5,def:40},{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>{ const a=Math.sin(C.t*P.speed+C.i*0.5)*P.amp; return {dx:a, dy:-(1-Math.cos(C.t*P.speed+C.i*0.5))*P.amp*0.5, alpha:Math.min(1,C.e*2)}; } },
+  { id:'floatAmbient', family:'Fisica', name:'Flotacion', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>({dy:Math.sin(C.t*P.speed+C.i*0.8)*12, rot:Math.sin(C.t*P.speed*0.7+C.i)*2, alpha:Math.min(1,C.e*2)}) },
+
+  { id:'extrudeIn', family:'Profundidad', name:'Extrusion', defStagger:0, params:[{key:'depth',label:'Profundidad',min:2,max:10,step:1,def:5}], fx:(C,P)=>{ const dupes=[]; const shades=['#d9d9d9','#b3b3b3','#8c8c8c','#666666','#404040']; for(let k=1;k<=P.depth;k++)dupes.push({dx:-k*7*(1-C.e), color:shades[(k-1)%5], alpha:0.85}); return {dupes, alpha:C.e}; } },
+  { id:'parallaxIn', family:'Profundidad', name:'Paralaje', defStagger:20, fx:C=>({scX:1-(1-C.st)*0.5*hash(C.i), scY:1-(1-C.st)*0.5*hash(C.i), blur:(1-C.st)*6*hash(C.i), alpha:Math.min(1,C.st*2)}) },
+  { id:'foldUp', family:'Profundidad', name:'Pliegue', defStagger:30, fx:C=>({scY:Math.cos((1-C.st)*Math.PI/2), dy:(1-C.st)*-20, alpha:1}) },
+  { id:'deepZoom', family:'Profundidad', name:'Zoom profundo', defStagger:0, defInDur:0.8, defEasing:'linear', params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>{ const z=Math.sin(C.t*P.speed); return {scX:1+z*0.5, scY:1+z*0.5, blur:Math.abs(z)*5, alpha:1}; } },
+  { id:'tunnelIn', family:'Profundidad', name:'Tunel', defStagger:20, fx:C=>({scX:0.2+0.8*C.st, scY:0.2+0.8*C.st, blur:(1-C.st)*15, dy:(1-C.st)*20, alpha:Math.min(1,C.st*2)}) },
+
+  { id:'lightSweep', family:'Luces', name:'Barrido de luz', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:50,max:400,step:10,def:200}], fx:(C,P)=>{ const span=C.totalW+200; const bx=((C.t*P.speed)%span)-span/2; return {dupes:[{dx:bx,color:'#ffffff',alpha:0.9,gco:'screen'}], alpha:1}; } },
+  { id:'strobe', family:'Luces', name:'Estroboscopio', defStagger:0, defInDur:0.5, params:[{key:'speed',label:'Velocidad',min:2,max:20,step:1,def:8}], fx:(C,P)=>({alpha:(Math.floor(C.t*P.speed)%2)?1:0.2}) },
+  { id:'sparkleTwinkle', family:'Luces', name:'Destellos', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:4}], fx:(C,P)=>{ const s=Math.sin(C.t*P.speed*3+C.i*2); return {dupes:s>0.6?[{dx:(hash(C.i)-0.5)*24, dy:(hash(C.i+4)-0.5)*24, color:'#ffffff', alpha:s, gco:'screen'}]:null, alpha:1}; } },
+  { id:'glowBreathe', family:'Luces', name:'Resplandor', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:8,step:1,def:3}], fx:(C,P)=>({shadow:C.state.stroke, shadowBlur:8+Math.sin(C.t*P.speed+C.i*0.5)*6, alpha:1}) },
+  { id:'shineAcross', family:'Luces', name:'Brillo cruzado', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:50,max:400,step:10,def:220}], fx:(C,P)=>{ const span=C.totalW+400; const bx=((C.t*P.speed)%span)-span/2; return {dupes:[{dx:bx,color:'#ffffff',alpha:0.55,gco:'screen'},{dx:bx*1.15,color:'#ffffff',alpha:0.25,gco:'screen'}], alpha:1}; } },
+
+  { id:'baselineBounce', family:'Tipograficos', name:'Saltos de linea base', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:2,max:15,step:1,def:6}], fx:(C,P)=>({dy:-Math.abs(Math.sin(C.t*P.speed+C.i*0.6))*14, rot:Math.sin(C.t*P.speed+C.i*0.6)*6, alpha:Math.min(1,C.e*2)}) },
+  { id:'swashIn', family:'Tipograficos', name:'Trazo caligrafico', defStagger:35, fx:C=>({rot:(1-C.st)*120*(C.i%2?-1:1), blur:(1-C.st)*8, alpha:Math.min(1,C.st*2)}) },
+  { id:'kernDance', family:'Tipograficos', name:'Baile de kerning', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:2,max:15,step:1,def:5}], fx:(C,P)=>({kern:Math.sin(C.t*P.speed+C.i*0.4)*24, alpha:Math.min(1,C.e*2)}) },
+  { id:'tallIn', family:'Tipograficos', name:'Crecimiento alto', defStagger:30, fx:C=>({scY:1.8-0.8*C.st, scX:0.8+0.2*C.st, alpha:C.st}) },
+  { id:'squishIn', family:'Tipograficos', name:'Aplastamiento', defStagger:30, fx:C=>({scY:0.4+0.6*C.st, scX:1.4-0.4*C.st, dy:(1-C.st)*30, alpha:Math.min(1,C.st*2)}) },
+
+  { id:'orbitLoop', family:'Ambientales', name:'Orbita', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>({dx:Math.cos(C.t*P.speed+C.i*0.7)*30, dy:Math.sin(C.t*P.speed+C.i*0.7)*12, alpha:Math.min(1,C.e*2)}) },
+  { id:'breathing', family:'Ambientales', name:'Respiracion', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:8,step:1,def:2}], fx:(C,P)=>({scX:1+Math.sin(C.t*P.speed+C.i*0.3)*0.08, scY:1+Math.sin(C.t*P.speed+C.i*0.3)*0.08, alpha:1}) },
+  { id:'hoverFloat', family:'Ambientales', name:'Flotar', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>({dy:Math.sin(C.t*P.speed+C.i*0.6)*10, alpha:Math.min(1,C.e*2)}) },
+  { id:'windLoop', family:'Ambientales', name:'Viento', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:12,step:1,def:4}], fx:(C,P)=>({skew:Math.sin(C.t*P.speed+C.i*0.5)*0.2*Math.min(1,C.e*2), alpha:Math.min(1,C.e*2)}) },
+  { id:'colorShift', family:'Ambientales', name:'Cambio de color', defStagger:0, defInDur:0.8, params:[{key:'speed',label:'Velocidad',min:1,max:15,step:1,def:4}], fx:(C,P)=>({fill:'hsl('+((C.t*P.speed*10)%360)+',75%,50%)', alpha:1}) },
+
+  { id:'stampIn', family:'Aterrizajes', name:'Sello', defStagger:25, fx:C=>({scX:2.5-1.5*C.st, scY:2.5-1.5*C.st, blur:(1-C.st)*10, alpha:Math.min(1,C.st*2.5)}) },
+  { id:'helicopterLand', family:'Aterrizajes', name:'Helicoptero', defStagger:30, fx:C=>({dy:(1-C.st)*-160, rot:Math.sin(C.st*Math.PI*4)*8*(1-C.st), alpha:Math.min(1,C.st*3)}) },
+  { id:'magnetSnap', family:'Aterrizajes', name:'Imantado', defStagger:25, defEasing:'elastic', params:[{key:'power',label:'Distancia',min:100,max:400,step:10,def:200}], fx:(C,P)=>({dx:(1-C.st)*-P.power, alpha:Math.min(1,C.st*2)}) },
+  { id:'parachute', family:'Aterrizajes', name:'Paracaidas', defStagger:35, fx:C=>({dy:(1-C.st)*-120, scX:1+(1-C.st)*0.5, scY:1+(1-C.st)*0.5, rot:Math.sin(C.t*3+C.i)*(1-C.st)*6, alpha:Math.min(1,C.st*2)}) },
+  { id:'crashLand', family:'Aterrizajes', name:'Aterrizaje brusco', defStagger:30, params:[{key:'power',label:'Altura',min:40,max:260,step:10,def:200}], fx:(C,P)=>({dy:(1-C.st)*-P.power+Math.abs(Math.sin(C.st*Math.PI*2))*P.power*0.4, scY:1-Math.sin(C.st*Math.PI)*0.25, alpha:Math.min(1,C.st*2)}) }
 ];
 const PRESET_BY_ID={};
 PRESETS.forEach(p=>PRESET_BY_ID[p.id]=p);
@@ -800,6 +863,7 @@ function render(ctx,t,forceBg){
       ctx.translate(cx,cy);
       ctx.rotate((T.rot||0)*Math.PI/180);
       ctx.scale(T.scX||1,T.scY||1);
+      if(T.skew)ctx.transform(1,0,T.skew,1,0,0);
       ctx.globalAlpha*=T.alpha!=null?T.alpha:1;
       let bl=S.blur+(T.blur||0);
       if(S.mbOn&&phase!=='hold'&&st>0&&st<1)bl+=(1-e)*S.mb;
@@ -810,8 +874,14 @@ function render(ctx,t,forceBg){
       const stroke=T.stroke||S.stroke;
       const strokeW=T.strokeW!=null?T.strokeW:S.strokeW;
       if(T.clip!=null){
+        const fw=widths[ci];
+        const cl=clamp(T.clip,0,1);
         ctx.beginPath();
-        ctx.rect(-widths[ci]/2,-S.size,widths[ci]*clamp(T.clip,0,1),S.size*2);
+        if(T.clipDir==='rl'){ ctx.rect(fw/2-fw*cl,-S.size,fw*cl,S.size*2); }
+        else if(T.clipDir==='tb'){ ctx.rect(-fw/2,-S.size,fw,S.size*2*cl); }
+        else if(T.clipDir==='bt'){ ctx.rect(-fw/2,S.size-S.size*2*cl,fw,S.size*2*cl); }
+        else if(T.clipDir==='center'){ ctx.rect(-fw*cl/2,-S.size*cl,fw*cl,S.size*2*cl); }
+        else { ctx.rect(-fw/2,-S.size,fw*cl,S.size*2); }
         ctx.clip();
       }
       const gx=-widths[ci]/2, gy=0;
@@ -1017,7 +1087,7 @@ function buildPresetList(){
   Object.keys(families).forEach(fam=>{
     const det=document.createElement('details');
     det.className='family';
-    if(first){ det.open=true; first=false; }
+    if(first){ det.open=true; det.classList.add('first-family'); first=false; }
     const sum=document.createElement('summary');
     sum.textContent=fam+' ('+families[fam].length+')';
     det.appendChild(sum);
@@ -1035,6 +1105,20 @@ function buildPresetList(){
     wrap.appendChild(det);
   });
 }
+
+$('presetSearch').addEventListener('input',e=>{
+  const q=e.target.value.trim().toLowerCase();
+  document.querySelectorAll('details.family').forEach(d=>{
+    if(!q){
+      d.style.display='';
+      d.open=d.classList.contains('first-family');
+    }else{
+      const hit=[].slice.call(d.querySelectorAll('.preset')).some(b=>b.textContent.toLowerCase().includes(q));
+      d.style.display=hit?'':'none';
+      if(hit)d.open=true;
+    }
+  });
+});
 
 function saveLS(){
   const o=Object.assign({},state,{playing:false,time:0});
