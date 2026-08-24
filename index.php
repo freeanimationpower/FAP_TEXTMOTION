@@ -964,7 +964,7 @@ function selectPreset(id){
   if(pr.defEasing)state.easing=pr.defEasing;
   if(pr.forceMode)state.mode=pr.forceMode;
   if(!state.presetParams[id])state.presetParams[id]={};
-  pr.params.forEach(pm=>{ if(state.presetParams[id][pm.key]===undefined)state.presetParams[id][pm.key]=pm.def; });
+  (pr.params||[]).forEach(pm=>{ if(state.presetParams[id][pm.key]===undefined)state.presetParams[id][pm.key]=pm.def; });
   state.time=0;
   syncUI();
   buildParamsUI();
