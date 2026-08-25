@@ -12,7 +12,7 @@ https://freeanimationpower.github.io/FAP_TEXTMOTION/
 
 - 205 animaciones editables en 30 familias: Entradas, Maquina, Espaciado, Ondas, 3D, Glitch, Rebote, Color, Trazo, Salida y ambient, Revelados, Elasticos, Liquido, Caminos, Fisica, Profundidad, Luces, Tipograficos, Ambientales, Aterrizajes, Cinematicos, Kinetic Type, Editorial Elegante, Whip y Overshoot, Texturas y Grano, Flujo y Liquido, Minimal Moderno, 3D Profundo, Letras Objeto y Espectaculares (inspiradas en Animation Composer de Mr. Horse)
 - Buscador de efectos por nombre en el panel derecho
-- Edicion por letra estilo Photoshop/AE: toca una letra en el escenario, arrastrala para moverla y usa el tirador naranja para cambiar su tamano; color, rotacion y posicion fina desde el panel
+- Edicion por letra integrada en la misma seccion de tipografia: al seleccionar una letra en el escenario, fuente, peso, cursiva, tamano y color editan SOLO esa letra; arrastrala para moverla y usa el tirador naranja para redimensionar
 - Keyframes por propiedad: anima tamano, espaciado de letras, interlineado, opacidad, rotacion y escala con puntos arrastrables en la linea de tiempo (interpolacion lineal)
 - 220 fuentes de Google en un unico selector agrupado por categoria (Display, Sans Serif, Serif, Mono, Script, Decorativas y listas extra); cada nombre se muestra en su propia tipografia
 - Deshacer y rehacer: Ctrl+Z / Ctrl+Y y botones en la linea de tiempo (tambien para movil)

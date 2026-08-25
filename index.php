@@ -256,7 +256,7 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     }
     details.family summary::-webkit-details-marker { display:none; }
     details.family summary::after { content:"+"; font-weight:800; color:var(--muted); }
-    details.family[open] summary::after { content:"â€“"; }
+    details.family[open] summary::after { content:"�?""; }
     details.family[open] summary { background:var(--yellow4); }
     .kf-row { border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px; }
     .kf-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
@@ -267,6 +267,7 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     .kf-dot.selected { background:var(--accent); }
     .kf-controls { display:flex; gap:8px; align-items:center; margin-top:8px; }
     .kf-del { border:none; background:var(--warm); border-radius:var(--radius-pill); padding:6px 12px; font-size:0.7rem; font-weight:700; color:var(--error); flex-shrink:0; }
+    .letter-bar { border:1px solid var(--accent); background:var(--yellow4); border-radius:var(--radius-sm); padding:10px; margin-bottom:12px; }
     .kf-on {
       display:inline-block;
       background:var(--accent); color:var(--white);
@@ -362,67 +363,24 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
 
   <aside class="panel panel-left">
 
-    <div class="sec-title">Texto</div>
+    <div class="sec-title">Texto y Tipografia</div>
     <div class="field">
       <textarea id="txtContent" placeholder="Escribe tu texto...">FREE ANIMATION
 POWER</textarea>
     </div>
-
-    <div class="sec-title">Letra seleccionada</div>
-    <p class="hint">Toca una letra en el escenario para seleccionarla. Arrastra la letra para moverla y arrastra el tirador naranja para cambiar su tamano. Clic fuera = deseleccionar.</p>
-    <div class="field">
-      <div class="field-row" style="gap:8px">
-        <label id="letterName" style="flex:1;margin:0">Ninguna letra seleccionada</label>
+    <div id="letterBar" class="letter-bar" style="display:none">
+      <div class="field-row" style="gap:8px;align-items:center">
+        <label id="letterName" style="flex:1;margin:0">Editando letra</label>
+        <button class="tl-undo" id="btnLetterDeselect" title="Deseleccionar letra">&#10005;</button>
         <button class="tl-undo" id="btnLetterPrev" title="Letra anterior">&#8592;</button>
         <button class="tl-undo" id="btnLetterNext" title="Letra siguiente">&#8594;</button>
       </div>
-    </div>
-    <div class="field">
-      <label>Fuente de la letra</label>
-      <select id="letterFont"></select>
-    </div>
-    <div class="switch-row">
-      <span>Color propio</span>
-      <div class="switch" id="letterFillSwitch"></div>
-    </div>
-    <div class="field">
-      <label>Color de la letra</label>
-      <input type="color" id="letterColor" value="#070706">
-    </div>
-    <div class="field">
-      <label>Tamano</label>
-      <div class="field-row">
-        <input type="range" id="letterSize" min="10" max="500" value="100">
-        <span class="range-val" id="letterSizeVal">100%</span>
+      <div class="field-row" style="gap:8px;margin-top:8px">
+        <button class="nav-btn" id="btnLetterReset" style="flex:1">Restablecer letra</button>
+        <button class="nav-btn" id="btnLettersResetAll" style="flex:1">Restablecer todas</button>
       </div>
     </div>
-    <div class="field">
-      <label>Rotacion</label>
-      <div class="field-row">
-        <input type="range" id="letterRot" min="-180" max="180" value="0">
-        <span class="range-val" id="letterRotVal">0Â°</span>
-      </div>
-    </div>
-    <div class="field">
-      <label>Desplazamiento X</label>
-      <div class="field-row">
-        <input type="range" id="letterDx" min="-200" max="200" value="0">
-        <span class="range-val" id="letterDxVal">0</span>
-      </div>
-    </div>
-    <div class="field">
-      <label>Desplazamiento Y</label>
-      <div class="field-row">
-        <input type="range" id="letterDy" min="-200" max="200" value="0">
-        <span class="range-val" id="letterDyVal">0</span>
-      </div>
-    </div>
-    <div class="field-row" style="gap:8px">
-      <button class="nav-btn" id="btnLetterReset" style="flex:1">Restablecer letra</button>
-      <button class="nav-btn" id="btnLettersResetAll" style="flex:1">Restablecer todas</button>
-    </div>
-
-    <div class="sec-title">Tipografia</div>
+    <p class="hint">Toca una letra en el escenario para editarla: fuente, peso, cursiva, tamano y color cambiaran SOLO esa letra mientras este seleccionada. Arrastrala para moverla y usa el tirador naranja para redimensionar.</p>
     <div class="field">
       <label>Fuente (220 de Google)</label>
       <select id="fontFamily"></select>
@@ -442,10 +400,33 @@ POWER</textarea>
       </div>
     </div>
     <div class="field">
-      <label id="sizeLabel">TamaÃ±o</label>
+      <label id="sizeLabel">Tamaño</label>
       <div class="field-row">
         <input type="range" id="fontSize" min="20" max="300" value="150">
         <span class="range-val" id="fontSizeVal">150</span>
+      </div>
+    </div>
+    <div id="letterExtra" style="display:none">
+      <div class="field">
+        <label>Rotacion</label>
+        <div class="field-row">
+          <input type="range" id="letterRot" min="-180" max="180" value="0">
+          <span class="range-val" id="letterRotVal">0°</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Desplazamiento X</label>
+        <div class="field-row">
+          <input type="range" id="letterDx" min="-200" max="200" value="0">
+          <span class="range-val" id="letterDxVal">0</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Desplazamiento Y</label>
+        <div class="field-row">
+          <input type="range" id="letterDy" min="-200" max="200" value="0">
+          <span class="range-val" id="letterDyVal">0</span>
+        </div>
       </div>
     </div>
     <div class="field">
@@ -486,6 +467,7 @@ POWER</textarea>
         <div><label>Trazo</label><input type="color" id="strokeColor" value="#ffdc00"></div>
       </div>
     </div>
+    <p class="hint" id="fillModeHint" style="display:none">Con letra seleccionada, el color de relleno edita solo esa letra.</p>
     <div class="field">
       <label>Grosor del trazo</label>
       <div class="field-row">
@@ -604,7 +586,7 @@ POWER</textarea>
       <label id="rotationLabel">Rotacion</label>
       <div class="field-row">
         <input type="range" id="rotation" min="-180" max="180" value="0">
-        <span class="range-val" id="rotationVal">0Â°</span>
+        <span class="range-val" id="rotationVal">0°</span>
       </div>
     </div>
     <div class="field">
@@ -733,7 +715,7 @@ const KF_PROPS=[
   {key:'letterSpace',label:'Espaciado de letras',unit:'',min:-20,max:100,step:1,el:'letterSpace'},
   {key:'lineH',label:'Interlineado',unit:'',min:9,max:20,step:1,el:'lineH'},
   {key:'opacity',label:'Opacidad',unit:'%',min:0,max:100,step:1,el:'opacity'},
-  {key:'rotation',label:'Rotacion',unit:'Â°',min:-180,max:180,step:1,el:'rotation'},
+  {key:'rotation',label:'Rotacion',unit:'°',min:-180,max:180,step:1,el:'rotation'},
   {key:'scale',label:'Escala',unit:'%',min:10,max:300,step:1,el:'scale'}
 ];
 function defaultKf(){
@@ -1132,9 +1114,9 @@ function render(ctx,t,forceBg){
     const chars=line.split('');
     const widths=chars.map((c,ci2)=>{
       const Lf=S.letters[charIdxBase+ci2];
-      if(Lf&&Lf.font){
+      if(Lf&&(Lf.font||Lf.weight!=null||Lf.italic!=null)){
         ctx.save();
-        ctx.font=(S.italic?'italic ':'')+(Lf.weight||S.weight)+' '+sizeF+'px "'+Lf.font+'", sans-serif';
+        ctx.font=(Lf.italic!=null?Lf.italic:S.italic?'italic ':'')+(Lf.weight!=null?Lf.weight:S.weight)+' '+sizeF+'px "'+(Lf.font||S.font)+'", sans-serif';
         const w=ctx.measureText(c).width;
         ctx.restore();
         return w;
@@ -1206,8 +1188,8 @@ function render(ctx,t,forceBg){
       }
       const gx=-widths[ci]/2, gy=0;
       const dc=T.char!=null?T.char:ch;
-      if(L&&L.font){
-        ctx.font=(S.italic?'italic ':'')+(L.weight||S.weight)+' '+sizeF+'px "'+L.font+'", sans-serif';
+      if(L&&(L.font||L.weight!=null||L.italic!=null)){
+        ctx.font=(L.italic!=null?L.italic:S.italic?'italic ':'')+(L.weight!=null?L.weight:S.weight)+' '+sizeF+'px "'+(L.font||S.font)+'", sans-serif';
       }
       if(S.mode==='fill'||S.mode==='both'){ ctx.fillStyle=fill; ctx.fillText(dc,gx,gy); }
       if(S.mode==='stroke'||S.mode==='both'){ ctx.strokeStyle=stroke; ctx.lineWidth=strokeW; ctx.lineJoin='round'; ctx.strokeText(dc,gx,gy); }
@@ -1429,7 +1411,7 @@ function syncUI(){
   $('lineH').value=Math.round(state.lineH*10); $('lineHVal').textContent=state.lineH.toFixed(1);
   $('strokeW').value=state.strokeW; $('strokeWVal').textContent=state.strokeW;
   $('opacity').value=state.opacity; $('opacityVal').textContent=state.opacity+'%';
-  $('rotation').value=state.rotation; $('rotationVal').textContent=state.rotation+'Â°';
+  $('rotation').value=state.rotation; $('rotationVal').textContent=state.rotation+'°';
   $('scale').value=state.scale; $('scaleVal').textContent=state.scale+'%';
   $('blur').value=state.blur; $('blurVal').textContent=state.blur+'px';
   $('stagger').value=state.stagger; $('staggerVal').textContent=state.stagger+'ms';
@@ -1637,7 +1619,7 @@ function syncStaticSliders(){
   KF_PROPS.forEach(p=>{
     const lab=$(p.el+'Label');
     if(lab){
-      const on=state.kf[p.key]&&state.kf[p.key].on&&state.kf[p.key].keys.length>0;
+      const on=(p.key!=='size'||selLetter==null)&&state.kf[p.key]&&state.kf[p.key].on&&state.kf[p.key].keys.length>0;
       lab.innerHTML=on?p.label+' <span class="kf-on" title="Keyframes activos: este slider edita el keyframe mas cercano al cursor. Haz clic aqui para desactivar los keyframes.">keyframes</span>':p.label;
     }
   });
@@ -1710,18 +1692,36 @@ function updateLetterCtrls(){
   const chars=state.text.replace(/\n/g,'').split('');
   const L=(selLetter!=null&&state.letters[selLetter])||{};
   const ch=selLetter!=null?(chars[selLetter]!=null?chars[selLetter]:''):'';
-  $('letterName').textContent=selLetter!=null?('Letra '+(selLetter+1)+' ('+(ch===' '?'espacio':ch)+')'):'Ninguna letra seleccionada';
-  $('letterFont').value=L.font||'';
-  setSwitch('letterFillSwitch',!!L.fill);
-  $('letterColor').value=L.fill||state.fill;
-  $('letterSize').value=Math.round((L.size||1)*100);
-  $('letterSizeVal').textContent=Math.round((L.size||1)*100)+'%';
+  const letterMode=selLetter!=null;
+  $('letterBar').style.display=letterMode?'block':'none';
+  $('letterExtra').style.display=letterMode?'block':'none';
+  $('fillModeHint').style.display=letterMode?'block':'none';
+  if(letterMode){
+    $('letterName').textContent='Editando letra '+(selLetter+1)+' ('+(ch===' '?'espacio':ch)+')';
+  }
+  $('fontFamily').value=L.font||state.font;
+  setPills('weightGroup','w',(L.weight!=null?L.weight:state.weight));
+  setSwitch('italicSwitch',(L.italic!=null?L.italic:state.italic));
+  if(letterMode){
+    const s=Math.round((L.size||1)*100);
+    $('fontSize').min='10';
+    $('fontSize').max='500';
+    $('fontSize').value=s;
+    $('fontSizeVal').textContent=s+'%';
+  }else{
+    $('fontSize').min='20';
+    $('fontSize').max='300';
+    $('fontSize').value=state.size;
+    $('fontSizeVal').textContent=state.size;
+  }
   $('letterRot').value=L.rot||0;
-  $('letterRotVal').textContent=(L.rot||0)+'Â°';
+  $('letterRotVal').textContent=(L.rot||0)+'°';
   $('letterDx').value=L.dx||0;
   $('letterDxVal').textContent=L.dx||0;
   $('letterDy').value=L.dy||0;
   $('letterDyVal').textContent=L.dy||0;
+  $('fillColor').value=L.fill||state.fill;
+  syncStaticSliders();
 }
 function letterSet(key,val){
   if(selLetter==null)return;
@@ -1730,34 +1730,11 @@ function letterSet(key,val){
   saveLS();
   updateLetterCtrls();
 }
-$('letterFillSwitch').addEventListener('click',()=>{
-  if(selLetter==null)return;
-  const L=state.letters[selLetter]||(state.letters[selLetter]={});
-  if(L.fill){ L.fill=null; } else { L.fill=state.fill; }
-  saveLS();
+$('btnLetterDeselect').addEventListener('click',()=>{
+  selLetter=null;
+  lastHandle=null;
   updateLetterCtrls();
 });
-$('letterFont').addEventListener('change',e=>{
-  if(selLetter==null)return;
-  if(!e.target.value){
-    if(state.letters[selLetter]){
-      delete state.letters[selLetter].font;
-      if(!Object.keys(state.letters[selLetter]).length)delete state.letters[selLetter];
-    }
-  }else{
-    letterSet('font',e.target.value);
-    return;
-  }
-  saveLS();
-  updateLetterCtrls();
-});
-$('letterColor').addEventListener('input',e=>{
-  if(selLetter==null)return;
-  const L=state.letters[selLetter]||(state.letters[selLetter]={});
-  L.fill=e.target.value;
-  saveLS();
-});
-$('letterSize').addEventListener('input',e=>{ letterSet('size',parseFloat(e.target.value)/100); });
 $('letterRot').addEventListener('input',e=>{ letterSet('rot',parseFloat(e.target.value)); });
 $('letterDx').addEventListener('input',e=>{ letterSet('dx',parseFloat(e.target.value)); });
 $('letterDy').addEventListener('input',e=>{ letterSet('dy',parseFloat(e.target.value)); });
@@ -1900,19 +1877,50 @@ $('txtContent').addEventListener('input',e=>{
   updateLetterCtrls();
 });
 $('fontFamily').addEventListener('change',e=>{
-  state.font=e.target.value;
-  loadFont(state.font);
-  saveLS();
+  if(selLetter!=null){
+    letterSet('font',e.target.value);
+  }else{
+    state.font=e.target.value;
+    loadFont(state.font);
+    saveLS();
+  }
 });
-wirePills('weightGroup','weight','w',parseInt);
+$('weightGroup').querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    $('weightGroup').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    const w=parseInt(b.dataset.w);
+    if(selLetter!=null){ letterSet('weight',w); }
+    else { state.weight=w; saveLS(); }
+  });
+});
 wirePills('alignGroup','align','a');
 wirePills('modeGroup','mode','m');
-wireRange('fontSize','size');
+$('fontSize').addEventListener('input',()=>{
+  const raw=parseFloat($('fontSize').value);
+  if(selLetter!=null){
+    letterSet('size',raw/100);
+    $('fontSizeVal').textContent=Math.round(raw)+'%';
+  }else{
+    const kf=state.kf.size;
+    if(kf&&kf.on&&kf.keys.length){
+      let best=0,bd=1e9;
+      kf.keys.forEach((k,i)=>{ const d=Math.abs(k.t-state.time); if(d<bd){ bd=d; best=i; } });
+      kf.keys[best].v=raw;
+      buildKfUI();
+      saveLS();
+    }else{
+      state.size=raw;
+      saveLS();
+    }
+    $('fontSizeVal').textContent=raw;
+  }
+});
 wireRange('letterSpace','letterSpace');
 wireRange('lineH','lineH','',0.1);
 wireRange('strokeW','strokeW');
 wireRange('opacity','opacity','%');
-wireRange('rotation','rotation','Â°');
+wireRange('rotation','rotation','°');
 wireRange('scale','scale','%');
 wireRange('blur','blur','px');
 wireRange('stagger','stagger','ms');
@@ -1924,13 +1932,32 @@ $('animIn').addEventListener('input',e=>{
   $('animInVal').textContent=state.inDur.toFixed(1)+'s';
   saveLS();
 });
-wireSwitch('italicSwitch','italic');
+$('italicSwitch').addEventListener('click',()=>{
+  if(selLetter!=null){
+    const L=state.letters[selLetter]||(state.letters[selLetter]={});
+    L.italic=!L.italic;
+    saveLS();
+  }else{
+    state.italic=!state.italic;
+    saveLS();
+  }
+  updateLetterCtrls();
+});
 wireSwitch('bgSwitch','bgOn');
 wireSwitch('outSwitch','outOn');
 wireSwitch('loopSwitch','loop');
 wireSwitch('mbSwitch','mbOn');
 wireSwitch('shSwitch','shOn');
-$('fillColor').addEventListener('input',e=>{ state.fill=e.target.value; saveLS(); });
+$('fillColor').addEventListener('input',e=>{
+  if(selLetter!=null){
+    const L=state.letters[selLetter]||(state.letters[selLetter]={});
+    L.fill=e.target.value;
+    saveLS();
+  }else{
+    state.fill=e.target.value;
+    saveLS();
+  }
+});
 $('strokeColor').addEventListener('input',e=>{ state.stroke=e.target.value; saveLS(); });
 $('bgColor').addEventListener('input',e=>{ state.bg=e.target.value; saveLS(); });
 $('shColor').addEventListener('input',e=>{ state.shColor=e.target.value; saveLS(); });
@@ -1993,7 +2020,7 @@ window.addEventListener('touchmove',e=>{ if(scrubbing)scrub(e); });
 window.addEventListener('touchend',()=>scrubbing=false);
 
 $('btnNew').addEventListener('click',()=>{
-  if(!confirm('Â¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
+  if(!confirm('¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
   state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf(),letters:{}});
   localStorage.removeItem('fap-textmotion');
   kfSel=null;
@@ -2338,7 +2365,6 @@ function populateFontSelect(selEl,placeholder){
 }
 (function init(){
   populateFontSelect($('fontFamily'));
-  populateFontSelect($('letterFont'),'Fuente global (la del texto)');
   const osel=$('outPreset');
   const om=document.createElement('option');
   om.value='mirror';
