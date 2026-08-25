@@ -1022,7 +1022,8 @@ const DEFAULT_STATE={
   time:0,
   playing:false,
   kf:defaultKf(),
-  letters:{}
+  letters:{},
+  v:3
 };
 let state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf(),letters:{}});
 
@@ -1664,12 +1665,9 @@ function pushHistory(){
 function applySnapshot(s){
   try{
     const o=JSON.parse(s);
-    Object.assign(state,o,{playing:false,time:0});
-    if(!state.presetParams)state.presetParams={};
-    if(!state.kf)state.kf=defaultKf();
-    KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
-    if(!state.letters)state.letters={};
+    Object.assign(state,sanitizeState(o),{playing:false,time:0});
     kfSel=null;
+    selLetter=null;
     syncUI();
     buildParamsUI();
     saveLS(true);
@@ -1825,16 +1823,53 @@ function saveLS(noHist){
   const o=Object.assign({},state,{playing:false,time:0});
   try{ localStorage.setItem('fap-textmotion',JSON.stringify(o)); }catch(err){}
 }
+const SAVE_VERSION=3;
+function sanitizeState(o){
+  o=o||{};
+  const out=Object.assign({},DEFAULT_STATE,o);
+  out.presetParams=(o.presetParams&&typeof o.presetParams==='object'&&!Array.isArray(o.presetParams))?o.presetParams:{};
+  out.kf=defaultKf();
+  KF_PROPS.forEach(p=>{
+    const src=o.kf&&o.kf[p.key];
+    out.kf[p.key]={on:!!(src&&src.on),keys:(src&&Array.isArray(src.keys))?src.keys.slice():[]};
+  });
+  out.letters=(o.letters&&typeof o.letters==='object'&&!Array.isArray(o.letters))?o.letters:{};
+  if(!PRESET_BY_ID[out.preset])out.preset='fade';
+  if(out.outPreset!=='mirror'&&!PRESET_BY_ID[out.outPreset])out.outPreset='mirror';
+  out.size=clamp(parseFloat(out.size)||150,20,300);
+  out.letterSpace=clamp(parseFloat(out.letterSpace)||0,-20,100);
+  out.lineH=clamp(parseFloat(out.lineH)||1.2,0.9,2);
+  out.opacity=clamp(parseFloat(out.opacity)||100,0,100);
+  out.rotation=clamp(parseFloat(out.rotation)||0,-180,180);
+  out.scale=clamp(parseFloat(out.scale)||100,10,300);
+  out.duration=clamp(parseFloat(out.duration)||3,0.5,20);
+  out.inDur=clamp(parseFloat(out.inDur)||1,0.1,3);
+  out.outDur=clamp(parseFloat(out.outDur)||1,0.1,3);
+  out.stagger=clamp(parseFloat(out.stagger)||40,0,200);
+  out.strokeW=clamp(parseFloat(out.strokeW)||3,1,20);
+  out.blur=clamp(parseFloat(out.blur)||0,0,30);
+  out.mb=clamp(parseFloat(out.mb)||6,1,20);
+  out.shBlur=clamp(parseFloat(out.shBlur)||16,0,60);
+  out.weight=[400,700,900].indexOf(out.weight)>-1?out.weight:700;
+  out.mode=['fill','stroke','both'].indexOf(out.mode)>-1?out.mode:'fill';
+  out.align=['left','center','right'].indexOf(out.align)>-1?out.align:'center';
+  out.easing=EASE[out.easing]?out.easing:'easeOut';
+  if(typeof out.text!=='string')out.text='FREE ANIMATION\nPOWER';
+  if(typeof out.font!=='string'||!out.font)out.font='Archivo Black';
+  out.playing=false;
+  out.time=0;
+  return out;
+}
 function restoreLS(){
   try{
     const raw=localStorage.getItem('fap-textmotion');
     if(!raw)return;
     const o=JSON.parse(raw);
-    Object.assign(state,o,{playing:false,time:0});
-    if(!state.presetParams)state.presetParams={};
-    if(!state.kf)state.kf=defaultKf();
-    KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
-    if(!state.letters)state.letters={};
+    if(o.v!==SAVE_VERSION){
+      localStorage.removeItem('fap-textmotion');
+      return;
+    }
+    Object.assign(state,sanitizeState(o),{playing:false,time:0});
   }catch(err){}
 }
 
@@ -1964,11 +1999,7 @@ $('fileInput').addEventListener('change',e=>{
   r.onload=ev=>{
     try{
       const data=JSON.parse(ev.target.result);
-      Object.assign(state,data,{playing:false,time:0});
-      if(!state.presetParams)state.presetParams={};
-      if(!state.kf)state.kf=defaultKf();
-      KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
-      if(!state.letters)state.letters={};
+      Object.assign(state,sanitizeState(data),{playing:false,time:0});
       syncUI();
       buildParamsUI();
       loadFont(state.font);
