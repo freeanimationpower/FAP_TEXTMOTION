@@ -748,6 +748,7 @@ const DEFAULT_STATE={
   lineH:1.2,
   align:"center",
   mode:"fill",
+  restoreMode:null,
   fill:"#070706",
   stroke:"#ffdc00",
   strokeW:3,
@@ -1030,7 +1031,13 @@ function selectPreset(id){
   if(pr.defStagger!=null)state.stagger=pr.defStagger;
   if(pr.defInDur!=null)state.inDur=pr.defInDur;
   if(pr.defEasing)state.easing=pr.defEasing;
-  if(pr.forceMode)state.mode=pr.forceMode;
+  if(pr.forceMode){
+    if(state.restoreMode==null)state.restoreMode=state.mode;
+    state.mode=pr.forceMode;
+  }else if(state.restoreMode!=null){
+    state.mode=state.restoreMode;
+    state.restoreMode=null;
+  }
   if(!state.presetParams[id])state.presetParams[id]={};
   (pr.params||[]).forEach(pm=>{ if(state.presetParams[id][pm.key]===undefined)state.presetParams[id][pm.key]=pm.def; });
   state.time=0;
