@@ -20,7 +20,7 @@ https://freeanimationpower.github.io/FAP_TEXTMOTION/
 - Tipografia: 16 fuentes de Google curadas + fuente personalizada de Google, peso (400/700/900), cursiva, tamano, espaciado, interlineado, alineacion
 - Relleno, contorno o ambos, con colores y grosor configurables; degradados, sombras, motion blur
 - Fondo activable o transparencia total (checkerboard en el escenario)
-- Exportacion WebM (con canal alfa real), MP4 y GIF (con transparencia), 24/30/60 fps
+- Exportacion WebM (con canal alfa real), MOV (ProRes 4444 con alfa, compatible con After Effects/Premiere), MP4 y GIF (con transparencia), 24/30/60 fps
 - Guardar y abrir proyectos JSON (.textmotion) + autoguardado en localStorage
 - Atajos: ESPACIO reproduce/pausa, clic en la linea de tiempo para scrubbing
 

@@ -603,6 +603,7 @@ POWER</textarea>
       <div class="pills" id="formatGroup">
         <button data-f="webm" class="active">WebM</button>
         <button data-f="mp4">MP4</button>
+        <button data-f="mov">MOV</button>
         <button data-f="gif">GIF</button>
       </div>
     </div>
@@ -618,8 +619,9 @@ POWER</textarea>
       <span>Fondo transparente (alfa)</span>
       <div class="switch" id="exportAlphaSwitch"></div>
     </div>
-    <p class="hint">WebM y GIF soportan canal alfa real. En MP4 la transparencia se renderiza en negro.</p>
+    <p class="hint">WebM y GIF soportan canal alfa real. MOV exporta ProRes 4444 con alfa, compatible con After Effects y Premiere. En MP4 la transparencia se renderiza en negro.</p>
     <div class="progress" id="exportProgress"><div class="progress-bar" id="exportBar"></div></div>
+    <p class="hint" id="exportMsg" style="margin-top:8px"></p>
     <div class="modal-actions">
       <button class="nav-btn" id="btnCancelExport">Cancelar</button>
       <button class="nav-btn primary" id="btnDoExport">Renderizar</button>
@@ -1619,6 +1621,7 @@ $('btnDoExport').addEventListener('click',async ()=>{
   const prog=$('exportProgress');
   prog.classList.add('active');
   setBar(0);
+  $('exportMsg').textContent='';
   $('btnDoExport').disabled=true;
   const cv=$('renderCanvas');
   const ctx=cv.getContext('2d');
@@ -1626,11 +1629,14 @@ $('btnDoExport').addEventListener('click',async ()=>{
   try{
     if(exportFormat==='gif'){
       await exportGIF(ctx,fps,showBg);
+    }else if(exportFormat==='mov'){
+      await exportMOV(ctx,fps,showBg);
     }else{
       await exportVideo(ctx,fps,showBg,exportFormat==='webm'&&exportAlpha);
     }
   }catch(err){
     alert('Fallo la exportacion: '+err.message);
+    $('exportMsg').textContent='';
   }
   prog.classList.remove('active');
   $('btnDoExport').disabled=false;
@@ -1658,8 +1664,65 @@ async function exportVideo(ctx,fps,showBg,wantAlpha){
   download(new Blob(chunks,{type:mime}),'textmotion.'+ext);
 }
 
-async function exportGIF(ctx,fps,showBg){
-  const gif=new GifEnc(W,H);
+let ffmpegPromise=null;
+let lastMovFrames=0;
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=src;
+    s.onload=res;
+    s.onerror=()=>rej(new Error('No se pudo cargar '+src));
+    document.head.appendChild(s);
+  });
+}
+function ensureFfmpeg(){
+  if(!ffmpegPromise){
+    ffmpegPromise=(async()=>{
+      await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
+      await loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
+      const FF=FFmpegWASM.FFmpeg;
+      const ff=new FF();
+      await ff.load({
+        coreURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+        wasmURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'
+      });
+      return ff;
+    })();
+    ffmpegPromise.catch(()=>{ ffmpegPromise=null; });
+  }
+  return ffmpegPromise;
+}
+async function exportMOV(ctx,fps,showBg){
+  $('exportMsg').textContent='Cargando codificador MOV (la primera vez descarga ~30 MB)...';
+  const ff=await ensureFfmpeg();
+  const total=Math.round(state.duration*fps);
+  const frames=Math.min(300,total);
+  if(total>300)$('exportMsg').textContent='Limitado a 300 fotogramas. Reduce duracion o fps para clips mas largos.';
+  for(let i=1;i<=lastMovFrames;i++){
+    try{ await ff.deleteFile('frame'+String(i).padStart(4,'0')+'.png'); }catch(err){}
+  }
+  lastMovFrames=frames;
+  $('exportMsg').textContent='Generando '+frames+' fotogramas PNG...';
+  for(let i=1;i<=frames;i++){
+    render(ctx,(i-1)/fps,showBg);
+    const blob=await new Promise(res=>$('renderCanvas').toBlob(res,'image/png'));
+    const buf=new Uint8Array(await blob.arrayBuffer());
+    await ff.writeFile('frame'+String(i).padStart(4,'0')+'.png',buf);
+    setBar(i/frames);
+  }
+  $('exportMsg').textContent='Codificando MOV (ProRes 4444 con alfa)...';
+  try{
+    await ff.exec(['-y','-framerate',String(fps),'-i','frame%04d.png','-c:v','prores_ks','-profile:v','4444','-pix_fmt','yuva444p10le','out.mov']);
+  }catch(err){
+    $('exportMsg').textContent='ProRes no disponible, usando QuickTime Animation (qtrle)...';
+    await ff.exec(['-y','-framerate',String(fps),'-i','frame%04d.png','-c:v','qtrle','-pix_fmt','argb','out.mov']);
+  }
+  const data=await ff.readFile('out.mov');
+  $('exportMsg').textContent='';
+  download(new Blob([data],{type:'video/quicktime'}),'textmotion.mov');
+}
+
+async function exportGIF(ctx,fps,showBg){  const gif=new GifEnc(W,H);
   gif.setDelay(Math.round(1000/fps));
   gif.setRepeat(0);
   gif.setAlpha(!showBg);
