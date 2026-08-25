@@ -268,6 +268,9 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     .kf-controls { display:flex; gap:8px; align-items:center; margin-top:8px; }
     .kf-del { border:none; background:var(--warm); border-radius:var(--radius-pill); padding:6px 12px; font-size:0.7rem; font-weight:700; color:var(--error); flex-shrink:0; }
     .letter-bar { border:1px solid var(--accent); background:var(--yellow4); border-radius:var(--radius-sm); padding:10px; margin-bottom:12px; }
+    .letter-actions { display:flex; gap:6px; margin-top:8px; }
+    .letter-actions .nav-btn { flex:1; padding:6px 10px; font-size:0.68rem; }
+    .letter-extra-box { border-left:3px solid var(--accent); padding-left:10px; margin:2px 0 4px; }
     .kf-on {
       display:inline-block;
       background:var(--accent); color:var(--white);
@@ -303,7 +306,7 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     .progress.active { display:block; }
     .progress-bar { height:100%; background:var(--accent); width:0; transition:width .1s; }
 
-    .hint { font-size:0.7rem; color:var(--muted); line-height:1.5; }
+    .hint { font-size:0.7rem; color:var(--muted); line-height:1.5; margin-bottom:10px; }
     .footer-note {
       grid-area:foot;
       text-align:center;
@@ -375,12 +378,12 @@ POWER</textarea>
         <button class="tl-undo" id="btnLetterPrev" title="Letra anterior">&#8592;</button>
         <button class="tl-undo" id="btnLetterNext" title="Letra siguiente">&#8594;</button>
       </div>
-      <div class="field-row" style="gap:8px;margin-top:8px">
-        <button class="nav-btn" id="btnLetterReset" style="flex:1">Restablecer letra</button>
-        <button class="nav-btn" id="btnLettersResetAll" style="flex:1">Restablecer todas</button>
+      <div class="letter-actions">
+        <button class="nav-btn" id="btnLetterReset">Restablecer letra</button>
+        <button class="nav-btn" id="btnLettersResetAll">Restablecer todas</button>
       </div>
     </div>
-    <p class="hint">Toca una letra en el escenario para editarla: fuente, peso, cursiva, tamano y color cambiaran SOLO esa letra mientras este seleccionada. Arrastrala para moverla y usa el tirador naranja para redimensionar.</p>
+    <p class="hint">Selecciona una letra para editarla sola. Arrastra para moverla; el tirador naranja cambia su tamano.</p>
     <div class="field">
       <label>Fuente (220 de Google)</label>
       <select id="fontFamily"></select>
@@ -406,7 +409,7 @@ POWER</textarea>
         <span class="range-val" id="fontSizeVal">150</span>
       </div>
     </div>
-    <div id="letterExtra" style="display:none">
+    <div id="letterExtra" class="letter-extra-box" style="display:none">
       <div class="field">
         <label>Rotacion</label>
         <div class="field-row">
