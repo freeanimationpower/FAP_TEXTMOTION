@@ -254,7 +254,7 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     }
     details.family summary::-webkit-details-marker { display:none; }
     details.family summary::after { content:"+"; font-weight:800; color:var(--muted); }
-    details.family[open] summary::after { content:"–"; }
+    details.family[open] summary::after { content:"â€“"; }
     details.family[open] summary { background:var(--yellow4); }
     .kf-row { border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px; }
     .kf-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
@@ -394,7 +394,7 @@ POWER</textarea>
       <label>Rotacion</label>
       <div class="field-row">
         <input type="range" id="letterRot" min="-180" max="180" value="0">
-        <span class="range-val" id="letterRotVal">0°</span>
+        <span class="range-val" id="letterRotVal">0Â°</span>
       </div>
     </div>
     <div class="field">
@@ -436,7 +436,7 @@ POWER</textarea>
       </div>
     </div>
     <div class="field">
-      <label id="sizeLabel">Tamaño</label>
+      <label id="sizeLabel">TamaÃ±o</label>
       <div class="field-row">
         <input type="range" id="fontSize" min="20" max="300" value="150">
         <span class="range-val" id="fontSizeVal">150</span>
@@ -598,7 +598,7 @@ POWER</textarea>
       <label id="rotationLabel">Rotacion</label>
       <div class="field-row">
         <input type="range" id="rotation" min="-180" max="180" value="0">
-        <span class="range-val" id="rotationVal">0°</span>
+        <span class="range-val" id="rotationVal">0Â°</span>
       </div>
     </div>
     <div class="field">
@@ -727,7 +727,7 @@ const KF_PROPS=[
   {key:'letterSpace',label:'Espaciado de letras',unit:'',min:-20,max:100,step:1,el:'letterSpace'},
   {key:'lineH',label:'Interlineado',unit:'',min:9,max:20,step:1,el:'lineH'},
   {key:'opacity',label:'Opacidad',unit:'%',min:0,max:100,step:1,el:'opacity'},
-  {key:'rotation',label:'Rotacion',unit:'°',min:-180,max:180,step:1,el:'rotation'},
+  {key:'rotation',label:'Rotacion',unit:'Â°',min:-180,max:180,step:1,el:'rotation'},
   {key:'scale',label:'Escala',unit:'%',min:10,max:300,step:1,el:'scale'}
 ];
 function defaultKf(){
@@ -1092,7 +1092,15 @@ function render(ctx,t,forceBg){
   ctx.font=(S.italic?'italic ':'')+S.weight+' '+size+'px "'+S.font+'", sans-serif';
   ctx.textBaseline='middle';
   const lines=S.text.split('\n');
-  const lineHeight=size*lineH;
+  let maxLineW=0;
+  lines.forEach(line=>{
+    const w=line.split('').reduce((a,c)=>a+ctx.measureText(c).width,0)+Math.max(0,line.length-1)*letterSpace;
+    if(w>maxLineW)maxLineW=w;
+  });
+  const fit=Math.min(1,(W-160)/Math.max(1,maxLineW),(H-120)/Math.max(1,lines.length*size*lineH));
+  const sizeF=Math.max(10,size*fit);
+  ctx.font=(S.italic?'italic ':'')+S.weight+' '+sizeF+'px "'+S.font+'", sans-serif';
+  const lineHeight=sizeF*lineH;
   const totalH=lines.length*lineHeight;
   const startY=H/2-totalH/2+lineHeight/2;
   const charsFlat=S.text.replace(/\n/g,'').split('');
@@ -1119,7 +1127,7 @@ function render(ctx,t,forceBg){
       const Lf=S.letters[charIdxBase+ci2];
       if(Lf&&Lf.font){
         ctx.save();
-        ctx.font=(S.italic?'italic ':'')+(Lf.weight||S.weight)+' '+size+'px "'+Lf.font+'", sans-serif';
+        ctx.font=(S.italic?'italic ':'')+(Lf.weight||S.weight)+' '+sizeF+'px "'+Lf.font+'", sans-serif';
         const w=ctx.measureText(c).width;
         ctx.restore();
         return w;
@@ -1141,7 +1149,7 @@ function render(ctx,t,forceBg){
     }
     chars.forEach((ch,ci)=>{
       positions.push({x,y});
-      const li={idx:charIdx,x,y,w:widths[ci],h:size};
+      const li={idx:charIdx,x,y,w:widths[ci],h:sizeF};
       lastLayout.push(li);
       const wIdx=charWord[charIdx];
       const unit=pr.unit==='word'?'word':'char';
@@ -1182,17 +1190,17 @@ function render(ctx,t,forceBg){
         const fw=widths[ci];
         const cl=clamp(T.clip,0,1);
         ctx.beginPath();
-        if(T.clipDir==='rl'){ ctx.rect(fw/2-fw*cl,-size,fw*cl,size*2); }
-        else if(T.clipDir==='tb'){ ctx.rect(-fw/2,-size,fw,size*2*cl); }
-        else if(T.clipDir==='bt'){ ctx.rect(-fw/2,size-size*2*cl,fw,size*2*cl); }
-        else if(T.clipDir==='center'){ ctx.rect(-fw*cl/2,-size*cl,fw*cl,size*2*cl); }
-        else { ctx.rect(-fw/2,-size,fw*cl,size*2); }
+        if(T.clipDir==='rl'){ ctx.rect(fw/2-fw*cl,-sizeF,fw*cl,sizeF*2); }
+        else if(T.clipDir==='tb'){ ctx.rect(-fw/2,-sizeF,fw,sizeF*2*cl); }
+        else if(T.clipDir==='bt'){ ctx.rect(-fw/2,sizeF-sizeF*2*cl,fw,sizeF*2*cl); }
+        else if(T.clipDir==='center'){ ctx.rect(-fw*cl/2,-sizeF*cl,fw*cl,sizeF*2*cl); }
+        else { ctx.rect(-fw/2,-sizeF,fw*cl,sizeF*2); }
         ctx.clip();
       }
       const gx=-widths[ci]/2, gy=0;
       const dc=T.char!=null?T.char:ch;
       if(L&&L.font){
-        ctx.font=(S.italic?'italic ':'')+(L.weight||S.weight)+' '+size+'px "'+L.font+'", sans-serif';
+        ctx.font=(S.italic?'italic ':'')+(L.weight||S.weight)+' '+sizeF+'px "'+L.font+'", sans-serif';
       }
       if(S.mode==='fill'||S.mode==='both'){ ctx.fillStyle=fill; ctx.fillText(dc,gx,gy); }
       if(S.mode==='stroke'||S.mode==='both'){ ctx.strokeStyle=stroke; ctx.lineWidth=strokeW; ctx.lineJoin='round'; ctx.strokeText(dc,gx,gy); }
@@ -1219,7 +1227,7 @@ function render(ctx,t,forceBg){
     const cur=positions[vis];
     if(cur&&Math.floor(t*2)%2===0){
       ctx.fillStyle=S.fill;
-      ctx.fillRect(cur.x-2,cur.y-size*0.4,4,size*0.8);
+      ctx.fillRect(cur.x-2,cur.y-sizeF*0.4,4,sizeF*0.8);
     }
   }
   ctx.restore();
@@ -1414,7 +1422,7 @@ function syncUI(){
   $('lineH').value=Math.round(state.lineH*10); $('lineHVal').textContent=state.lineH.toFixed(1);
   $('strokeW').value=state.strokeW; $('strokeWVal').textContent=state.strokeW;
   $('opacity').value=state.opacity; $('opacityVal').textContent=state.opacity+'%';
-  $('rotation').value=state.rotation; $('rotationVal').textContent=state.rotation+'°';
+  $('rotation').value=state.rotation; $('rotationVal').textContent=state.rotation+'Â°';
   $('scale').value=state.scale; $('scaleVal').textContent=state.scale+'%';
   $('blur').value=state.blur; $('blurVal').textContent=state.blur+'px';
   $('stagger').value=state.stagger; $('staggerVal').textContent=state.stagger+'ms';
@@ -1705,7 +1713,7 @@ function updateLetterCtrls(){
   $('letterSize').value=Math.round((L.size||1)*100);
   $('letterSizeVal').textContent=Math.round((L.size||1)*100)+'%';
   $('letterRot').value=L.rot||0;
-  $('letterRotVal').textContent=(L.rot||0)+'°';
+  $('letterRotVal').textContent=(L.rot||0)+'Â°';
   $('letterDx').value=L.dx||0;
   $('letterDxVal').textContent=L.dx||0;
   $('letterDy').value=L.dy||0;
@@ -1853,7 +1861,7 @@ wireRange('letterSpace','letterSpace');
 wireRange('lineH','lineH','',0.1);
 wireRange('strokeW','strokeW');
 wireRange('opacity','opacity','%');
-wireRange('rotation','rotation','°');
+wireRange('rotation','rotation','Â°');
 wireRange('scale','scale','%');
 wireRange('blur','blur','px');
 wireRange('stagger','stagger','ms');
@@ -1934,7 +1942,7 @@ window.addEventListener('touchmove',e=>{ if(scrubbing)scrub(e); });
 window.addEventListener('touchend',()=>scrubbing=false);
 
 $('btnNew').addEventListener('click',()=>{
-  if(!confirm('¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
+  if(!confirm('Â¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
   state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf(),letters:{}});
   localStorage.removeItem('fap-textmotion');
   kfSel=null;
