@@ -563,8 +563,12 @@ POWER</textarea>
       </div>
     </div>
     <div class="switch-row">
-      <span>Animar salida (espejo)</span>
+      <span>Animar salida</span>
       <div class="switch" id="outSwitch"></div>
+    </div>
+    <div class="field">
+      <label>Efecto de salida</label>
+      <select id="outPreset"></select>
     </div>
     <div class="field">
       <label>Duracion de salida</label>
@@ -1004,6 +1008,7 @@ const DEFAULT_STATE={
   stagger:40,
   outOn:false,
   outDur:1.0,
+  outPreset:'mirror',
   loop:true,
   duration:3,
   opacity:100,
@@ -1068,12 +1073,18 @@ function render(ctx,t,forceBg){
   if(showBg){ ctx.fillStyle=S.bg; ctx.fillRect(0,0,W,H); }
   const preset=PRESET_BY_ID[S.preset]||PRESETS[0];
   const P=Object.assign({},paramDefaults(preset),S.presetParams[S.preset]||{});
+  const outPresetId=S.outPreset||'mirror';
+  const presetOut=outPresetId==='mirror'?preset:(PRESET_BY_ID[outPresetId]||preset);
+  const POut=outPresetId==='mirror'?P:Object.assign({},paramDefaults(presetOut),S.presetParams[outPresetId]||{});
   const inDur=S.inDur, outDur=S.outOn?S.outDur:0;
   const holdStart=inDur, holdEnd=Math.max(inDur,S.duration-outDur);
   let phase='hold', p=1;
   if(t<holdStart){ phase='in'; p=t/inDur; }
-  else if(t>holdEnd&&S.outOn){ phase='out'; p=1-(t-holdEnd)/outDur; }
+  else if(t>holdEnd&&S.outOn){ phase='out'; p=(t-holdEnd)/outDur; }
   p=clamp(p,0,1);
+  const pr=phase==='out'?presetOut:preset;
+  const Pp=phase==='out'?POut:P;
+  const durPhase=phase==='out'?outDur:inDur;
   ctx.font=(S.italic?'italic ':'')+S.weight+' '+size+'px "'+S.font+'", sans-serif';
   ctx.textBaseline='middle';
   const lines=S.text.split('\n');
@@ -1105,9 +1116,9 @@ function render(ctx,t,forceBg){
     const y=startY+li*lineHeight;
     let x=lineX;
     let grad=null;
-    if(preset.gradient){
+    if(pr.gradient){
       const span=totalW+800;
-      const off=(t*P.speed)%span-400;
+      const off=(t*Pp.speed)%span-400;
       grad=ctx.createLinearGradient(lineX+off,0,lineX+off+span,0);
       grad.addColorStop(0,S.fill);
       grad.addColorStop(0.5,S.stroke);
@@ -1118,15 +1129,15 @@ function render(ctx,t,forceBg){
       const li={idx:charIdx,x,y,w:widths[ci],h:size};
       lastLayout.push(li);
       const wIdx=charWord[charIdx];
-      const unit=preset.unit==='word'?'word':'char';
+      const unit=pr.unit==='word'?'word':'char';
       const idx=unit==='word'?Math.max(0,wIdx):charIdx;
       const total=unit==='word'?Math.max(1,wordTotal):totalChars;
       const delay=idx*S.stagger/1000;
-      let st=(p*inDur-delay)/Math.max(0.05,inDur-(total-1)*S.stagger/1000);
+      let st=(p*durPhase-delay)/Math.max(0.05,durPhase-(total-1)*S.stagger/1000);
       st=clamp(st,0,1);
       const e=(EASE[S.easing]||EASE.easeOut)(st);
-      const C={ch,i:charIdx,word:Math.max(0,wIdx),charW:widths[ci],totalW,lineIdx:li,W,H,t,e,st,p,totalChars,state:S};
-      const T=preset.fx(C,P)||{};
+      const C={ch,i:charIdx,word:Math.max(0,wIdx),charW:widths[ci],totalW,lineIdx:li,W,H,t,e,st,p:(phase==='out'&&outPresetId==='mirror')?(1-p):p,totalChars,state:S};
+      const T=pr.fx(C,Pp)||{};
       const L=S.letters[charIdx];
       if(L){
         if(L.fill)T.fill=L.fill;
@@ -1184,7 +1195,7 @@ function render(ctx,t,forceBg){
       charIdx++;
     });
   });
-  if(preset.id==='typewriter'&&phase==='in'&&totalChars>0){
+  if(pr.id==='typewriter'&&phase==='in'&&totalChars>0){
     const vis=Math.min(totalChars-1,Math.ceil(p*totalChars));
     const cur=positions[vis];
     if(cur&&Math.floor(t*2)%2===0){
@@ -1257,11 +1268,18 @@ function syncPlayIcon(){
 }
 function buildTicks(){
   const el=$('tlTicks');
-  const n=Math.min(20,Math.ceil(state.duration));
+  const d=state.duration;
   el.innerHTML='';
-  for(let i=0;i<n;i++){
+  let step=1;
+  if(d>16)step=5;
+  else if(d>8)step=2;
+  else if(d<2)step=0.5;
+  const n=Math.floor(d/step);
+  for(let i=0;i<=n;i++){
     const s=document.createElement('span');
-    s.dataset.t=i+'s';
+    s.dataset.t=(i*step)+'s';
+    s.style.flex='0 0 '+((step/d)*100)+'%';
+    s.style.overflow='hidden';
     el.appendChild(s);
   }
 }
@@ -1390,6 +1408,7 @@ function syncUI(){
   $('bgColor').value=state.bg;
   $('shColor').value=state.shColor;
   $('easing').value=state.easing;
+  $('outPreset').value=state.outPreset||'mirror';
   $('duration').value=state.duration;
   setPills('weightGroup','w',state.weight);
   setPills('alignGroup','a',state.align);
@@ -1823,6 +1842,15 @@ $('strokeColor').addEventListener('input',e=>{ state.stroke=e.target.value; save
 $('bgColor').addEventListener('input',e=>{ state.bg=e.target.value; saveLS(); });
 $('shColor').addEventListener('input',e=>{ state.shColor=e.target.value; saveLS(); });
 $('easing').addEventListener('change',e=>{ state.easing=e.target.value; saveLS(); });
+$('outPreset').addEventListener('change',e=>{
+  state.outPreset=e.target.value;
+  if(state.outPreset!=='mirror'){
+    if(!state.presetParams[state.outPreset])state.presetParams[state.outPreset]={};
+    const pr=PRESET_BY_ID[state.outPreset];
+    if(pr)(pr.params||[]).forEach(pm=>{ if(state.presetParams[state.outPreset][pm.key]===undefined)state.presetParams[state.outPreset][pm.key]=pm.def; });
+  }
+  saveLS();
+});
 $('duration').addEventListener('input',e=>{
   let v=parseFloat(e.target.value)||3;
   v=Math.max(0.5,Math.min(20,v));
@@ -2212,6 +2240,27 @@ window.addEventListener('resize',fitCanvas);
       og.appendChild(o);
     });
     sel.appendChild(og);
+  });
+  const osel=$('outPreset');
+  const om=document.createElement('option');
+  om.value='mirror';
+  om.textContent='Espejo (invertir la entrada)';
+  osel.appendChild(om);
+  const fams={};
+  PRESETS.forEach(p=>{
+    if(!fams[p.family])fams[p.family]=[];
+    fams[p.family].push(p);
+  });
+  Object.keys(fams).forEach(fam=>{
+    const og=document.createElement('optgroup');
+    og.label=fam;
+    fams[fam].forEach(p=>{
+      const o=document.createElement('option');
+      o.value=p.id;
+      o.textContent=p.name;
+      og.appendChild(o);
+    });
+    osel.appendChild(og);
   });
   buildPresetList();
   restoreLS();
