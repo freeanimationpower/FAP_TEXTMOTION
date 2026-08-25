@@ -273,6 +273,14 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
       vertical-align:middle;
     }
     label .kf-on { margin-top:2px; }
+    .letters-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(26px,1fr)); gap:4px; margin-bottom:8px; }
+    .letter-chip {
+      border:1px solid var(--border2); border-radius:8px; background:var(--white);
+      font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:11px;
+      padding:4px 0; text-align:center; transition:all .15s; min-width:0;
+    }
+    .letter-chip:hover { border-color:var(--ink); }
+    .letter-chip.selected { background:var(--ink); color:var(--yellow) !important; border-color:var(--ink); }
     .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:10px; }
     .preset {
       border:1px solid var(--border2); border-radius:var(--radius-pill);
@@ -364,6 +372,53 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     <div class="field">
       <textarea id="txtContent" placeholder="Escribe tu texto...">FREE ANIMATION
 POWER</textarea>
+    </div>
+
+    <div class="sec-title">Letras</div>
+    <div id="lettersChips" class="letters-grid"></div>
+    <p class="hint">Haz clic en una letra del escenario o en una ficha para editarla de forma individual.</p>
+    <div class="field">
+      <label id="letterName">Ninguna letra seleccionada</label>
+    </div>
+    <div class="switch-row">
+      <span>Color propio</span>
+      <div class="switch" id="letterFillSwitch"></div>
+    </div>
+    <div class="field">
+      <label>Color de la letra</label>
+      <input type="color" id="letterColor" value="#070706">
+    </div>
+    <div class="field">
+      <label>Tamano</label>
+      <div class="field-row">
+        <input type="range" id="letterSize" min="10" max="500" value="100">
+        <span class="range-val" id="letterSizeVal">100%</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Rotacion</label>
+      <div class="field-row">
+        <input type="range" id="letterRot" min="-180" max="180" value="0">
+        <span class="range-val" id="letterRotVal">0°</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Desplazamiento X</label>
+      <div class="field-row">
+        <input type="range" id="letterDx" min="-200" max="200" value="0">
+        <span class="range-val" id="letterDxVal">0</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Desplazamiento Y</label>
+      <div class="field-row">
+        <input type="range" id="letterDy" min="-200" max="200" value="0">
+        <span class="range-val" id="letterDyVal">0</span>
+      </div>
+    </div>
+    <div class="field-row" style="gap:8px">
+      <button class="nav-btn" id="btnLetterReset" style="flex:1">Restablecer letra</button>
+      <button class="nav-btn" id="btnLettersResetAll" style="flex:1">Restablecer todas</button>
     </div>
 
     <div class="sec-title">Tipografia</div>
@@ -861,9 +916,10 @@ const DEFAULT_STATE={
   shBlur:16,
   time:0,
   playing:false,
-  kf:defaultKf()
+  kf:defaultKf(),
+  letters:{}
 };
-let state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf()});
+let state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf(),letters:{}});
 
 const loadedFonts=new Set();
 function preloadAllFonts(){
@@ -896,8 +952,10 @@ function paramDefaults(preset){
   return o;
 }
 
+let lastLayout=[];
 function render(ctx,t,forceBg){
   const S=state;
+  lastLayout=[];
   const size=kfValue(S.kf.size,t,S.size);
   const letterSpace=kfValue(S.kf.letterSpace,t,S.letterSpace);
   const lineH=(kfValue(S.kf.lineH,t,S.lineH*10))/10;
@@ -956,6 +1014,7 @@ function render(ctx,t,forceBg){
     }
     chars.forEach((ch,ci)=>{
       positions.push({x,y});
+      lastLayout.push({idx:charIdx,x,y,w:widths[ci],h:size});
       const wIdx=charWord[charIdx];
       const unit=preset.unit==='word'?'word':'char';
       const idx=unit==='word'?Math.max(0,wIdx):charIdx;
@@ -966,6 +1025,14 @@ function render(ctx,t,forceBg){
       const e=(EASE[S.easing]||EASE.easeOut)(st);
       const C={ch,i:charIdx,word:Math.max(0,wIdx),charW:widths[ci],totalW,lineIdx:li,W,H,t,e,st,p,totalChars,state:S};
       const T=preset.fx(C,P)||{};
+      const L=S.letters[charIdx];
+      if(L){
+        if(L.fill)T.fill=L.fill;
+        if(L.size){ T.scX=(T.scX||1)*L.size; T.scY=(T.scY||1)*L.size; }
+        if(L.rot)T.rot=(T.rot||0)+L.rot;
+        if(L.dx)T.dx=(T.dx||0)+L.dx;
+        if(L.dy)T.dy=(T.dy||0)+L.dy;
+      }
       ctx.save();
       const cx=x+widths[ci]/2+(T.dx||0)+(T.kern||0)*(ci-chars.length/2);
       const cy=y+(T.dy||0);
@@ -1203,6 +1270,8 @@ function syncUI(){
   buildTicks();
   syncStaticSliders();
   buildKfUI();
+  buildLettersUI();
+  updateLetterCtrls();
 }
 
 function buildPresetList(){
@@ -1425,6 +1494,7 @@ function applySnapshot(s){
     if(!state.presetParams)state.presetParams={};
     if(!state.kf)state.kf=defaultKf();
     KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
+    if(!state.letters)state.letters={};
     kfSel=null;
     syncUI();
     buildParamsUI();
@@ -1449,6 +1519,103 @@ function resetHistory(){
   hLast=0;
 }
 
+let selLetter=null;
+function buildLettersUI(){
+  const wrap=$('lettersChips');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const chars=state.text.replace(/\n/g,'').split('');
+  chars.forEach((ch,i)=>{
+    const b=document.createElement('button');
+    b.className='letter-chip'+(selLetter===i?' selected':'');
+    b.textContent=ch===' '?'sp':ch;
+    const L=state.letters[i];
+    if(L&&L.fill)b.style.color=L.fill;
+    if(L&&L.size)b.style.fontSize=Math.round(11*L.size)+'px';
+    b.title='Letra '+(i+1);
+    b.addEventListener('click',()=>{
+      selLetter=i;
+      buildLettersUI();
+      updateLetterCtrls();
+    });
+    wrap.appendChild(b);
+  });
+}
+function updateLetterCtrls(){
+  const chars=state.text.replace(/\n/g,'').split('');
+  const L=(selLetter!=null&&state.letters[selLetter])||{};
+  const ch=selLetter!=null?(chars[selLetter]!=null?chars[selLetter]:''):'';
+  $('letterName').textContent=selLetter!=null?('Letra '+(selLetter+1)+' ('+(ch===' '?'espacio':ch)+')'):'Ninguna letra seleccionada';
+  setSwitch('letterFillSwitch',!!L.fill);
+  $('letterColor').value=L.fill||state.fill;
+  $('letterSize').value=Math.round((L.size||1)*100);
+  $('letterSizeVal').textContent=Math.round((L.size||1)*100)+'%';
+  $('letterRot').value=L.rot||0;
+  $('letterRotVal').textContent=(L.rot||0)+'°';
+  $('letterDx').value=L.dx||0;
+  $('letterDxVal').textContent=L.dx||0;
+  $('letterDy').value=L.dy||0;
+  $('letterDyVal').textContent=L.dy||0;
+}
+function letterSet(key,val){
+  if(selLetter==null)return;
+  if(!state.letters[selLetter])state.letters[selLetter]={};
+  state.letters[selLetter][key]=val;
+  saveLS();
+  buildLettersUI();
+  updateLetterCtrls();
+}
+$('letterFillSwitch').addEventListener('click',()=>{
+  if(selLetter==null)return;
+  const L=state.letters[selLetter]||(state.letters[selLetter]={});
+  if(L.fill){ L.fill=null; } else { L.fill=state.fill; }
+  saveLS();
+  buildLettersUI();
+  updateLetterCtrls();
+});
+$('letterColor').addEventListener('input',e=>{
+  if(selLetter==null)return;
+  const L=state.letters[selLetter]||(state.letters[selLetter]={});
+  L.fill=e.target.value;
+  saveLS();
+  buildLettersUI();
+});
+$('letterSize').addEventListener('input',e=>{ letterSet('size',parseFloat(e.target.value)/100); });
+$('letterRot').addEventListener('input',e=>{ letterSet('rot',parseFloat(e.target.value)); });
+$('letterDx').addEventListener('input',e=>{ letterSet('dx',parseFloat(e.target.value)); });
+$('letterDy').addEventListener('input',e=>{ letterSet('dy',parseFloat(e.target.value)); });
+$('btnLetterReset').addEventListener('click',()=>{
+  if(selLetter==null)return;
+  delete state.letters[selLetter];
+  saveLS();
+  buildLettersUI();
+  updateLetterCtrls();
+});
+$('btnLettersResetAll').addEventListener('click',()=>{
+  state.letters={};
+  selLetter=null;
+  saveLS();
+  buildLettersUI();
+  updateLetterCtrls();
+});
+preview.addEventListener('pointerdown',e=>{
+  const rect=preview.getBoundingClientRect();
+  const cx=(e.clientX-rect.left)*(W/rect.width);
+  const cy=(e.clientY-rect.top)*(H/rect.height);
+  let hit=null, bd=1e9;
+  lastLayout.forEach(it=>{
+    if(cx>=it.x-6&&cx<=it.x+it.w+6&&Math.abs(cy-it.y)<=it.h/2+10){
+      const d=Math.hypot(cx-(it.x+it.w/2),cy-it.y);
+      if(d<bd){ bd=d; hit=it.idx; }
+    }
+  });
+  if(hit!=null){
+    selLetter=hit;
+    buildLettersUI();
+    updateLetterCtrls();
+  }
+});
+
 function saveLS(noHist){
   if(!noHist)pushHistory();
   const o=Object.assign({},state,{playing:false,time:0});
@@ -1463,10 +1630,16 @@ function restoreLS(){
     if(!state.presetParams)state.presetParams={};
     if(!state.kf)state.kf=defaultKf();
     KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
+    if(!state.letters)state.letters={};
   }catch(err){}
 }
 
-$('txtContent').addEventListener('input',e=>{ state.text=e.target.value; saveLS(); });
+$('txtContent').addEventListener('input',e=>{
+  state.text=e.target.value;
+  saveLS();
+  buildLettersUI();
+  updateLetterCtrls();
+});
 $('fontFamily').addEventListener('change',e=>{
   state.font=e.target.value;
   loadFont(state.font);
@@ -1553,9 +1726,10 @@ window.addEventListener('touchend',()=>scrubbing=false);
 
 $('btnNew').addEventListener('click',()=>{
   if(!confirm('¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
-  state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf()});
+  state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf(),letters:{}});
   localStorage.removeItem('fap-textmotion');
   kfSel=null;
+  selLetter=null;
   resetHistory();
   syncUI();
   buildParamsUI();
@@ -1582,6 +1756,7 @@ $('fileInput').addEventListener('change',e=>{
       if(!state.presetParams)state.presetParams={};
       if(!state.kf)state.kf=defaultKf();
       KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
+      if(!state.letters)state.letters={};
       syncUI();
       buildParamsUI();
       loadFont(state.font);
