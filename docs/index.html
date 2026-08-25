@@ -520,7 +520,7 @@ POWER</textarea>
 
   <aside class="panel panel-right">
 
-    <div class="sec-title">Animacion &mdash; 105 presets</div>
+    <div class="sec-title">Animacion &mdash; 205 presets</div>
     <div class="field">
       <input type="text" id="presetSearch" placeholder="Buscar efecto...">
     </div>
@@ -861,7 +861,117 @@ const PRESETS=[
   { id:'helicopterLand', family:'Aterrizajes', name:'Helicoptero', defStagger:30, fx:C=>({dy:(1-C.st)*-160, rot:Math.sin(C.st*Math.PI*4)*8*(1-C.st), alpha:Math.min(1,C.st*3)}) },
   { id:'magnetSnap', family:'Aterrizajes', name:'Imantado', defStagger:25, defEasing:'elastic', params:[{key:'power',label:'Distancia',min:100,max:400,step:10,def:200}], fx:(C,P)=>({dx:(1-C.st)*-P.power, alpha:Math.min(1,C.st*2)}) },
   { id:'parachute', family:'Aterrizajes', name:'Paracaidas', defStagger:35, fx:C=>({dy:(1-C.st)*-120, scX:1+(1-C.st)*0.5, scY:1+(1-C.st)*0.5, rot:Math.sin(C.t*3+C.i)*(1-C.st)*6, alpha:Math.min(1,C.st*2)}) },
-  { id:'crashLand', family:'Aterrizajes', name:'Aterrizaje brusco', defStagger:30, params:[{key:'power',label:'Altura',min:40,max:260,step:10,def:200}], fx:(C,P)=>({dy:(1-C.st)*-P.power+Math.abs(Math.sin(C.st*Math.PI*2))*P.power*0.4, scY:1-Math.sin(C.st*Math.PI)*0.25, alpha:Math.min(1,C.st*2)}) }
+  { id:'crashLand', family:'Aterrizajes', name:'Aterrizaje brusco', defStagger:30, params:[{key:'power',label:'Altura',min:40,max:260,step:10,def:200}], fx:(C,P)=>({dy:(1-C.st)*-P.power+Math.abs(Math.sin(C.st*Math.PI*2))*P.power*0.4, scY:1-Math.sin(C.st*Math.PI)*0.25, alpha:Math.min(1,C.st*2)}) },
+
+  { id:'cineFade', family:'Cinematicos', name:'Fundido cinematografico', defStagger:25, defEasing:'expoOut', fx:C=>({alpha:C.e, dy:(1-C.e)*30, blur:(1-C.e)*4}) },
+  { id:'cineTrack', family:'Cinematicos', name:'Tracking cinematografico', defStagger:20, defEasing:'expoOut', fx:C=>({kern:(1-C.e)*70, alpha:C.e, blur:(1-C.e)*6}) },
+  { id:'cineZoom', family:'Cinematicos', name:'Zoom cinematografico', defStagger:30, defEasing:'expoOut', fx:C=>({scX:0.85+0.15*C.e, scY:0.85+0.15*C.e, alpha:C.e, blur:(1-C.e)*8}) },
+  { id:'whipPan', family:'Cinematicos', name:'Whip pan', defStagger:15, defEasing:'expoOut', fx:C=>({dx:(1-C.e)*600, rot:(1-C.e)*6, alpha:C.e, blur:(1-C.e)*5}) },
+  { id:'glideIn', family:'Cinematicos', name:'Deslizamiento suave', defStagger:30, fx:C=>({dx:(1-C.e)*-150, alpha:Math.min(1,C.e*1.5)}) },
+  { id:'focusPull', family:'Cinematicos', name:'Tiro de foco', defStagger:20, fx:C=>({blur:(1-C.e)*24, alpha:Math.min(1,C.e*1.6)}) },
+  { id:'driftUp', family:'Cinematicos', name:'Deriva ascendente', defStagger:35, fx:C=>({dy:(1-C.e)*60, alpha:C.e, rot:(1-C.e)*2}) },
+  { id:'chapterTitle', family:'Cinematicos', name:'Titulo de capitulo', defStagger:25, fx:C=>({scX:0.94+0.06*C.e, scY:0.94+0.06*C.e, dy:(1-C.e)*20, blur:(1-C.e)*3, alpha:C.e}) },
+  { id:'microReveal', family:'Cinematicos', name:'Micro revelado', defStagger:30, fx:C=>({scX:0.98+0.02*C.e, scY:0.98+0.02*C.e, dy:(1-C.e)*8, alpha:C.e}) },
+  { id:'softPop', family:'Cinematicos', name:'Pop suave', defStagger:40, defEasing:'backOut', fx:C=>({scX:0.9+0.1*C.e, scY:0.9+0.1*C.e, alpha:C.e}) },
+
+  { id:'kinFlip', family:'Kinetic Type', name:'Volteo kinetic', defStagger:35, fx:C=>({scX:Math.cos((1-C.st)*Math.PI), alpha:1}) },
+  { id:'kinJump', family:'Kinetic Type', name:'Salto kinetic', defStagger:45, fx:C=>({dy:-Math.abs(Math.sin(C.st*Math.PI))*60, rot:Math.sin(C.st*Math.PI)*14, alpha:1}) },
+  { id:'kinSpin', family:'Kinetic Type', name:'Giro kinetic', defStagger:30, fx:C=>({rot:(1-C.st)*360, scX:0.4+0.6*C.st, scY:0.4+0.6*C.st, alpha:Math.min(1,C.st*2)}) },
+  { id:'kinSlide', family:'Kinetic Type', name:'Deslizamiento alternado', defStagger:30, fx:C=>({dx:(1-C.st)*180*(C.i%2?-1:1), alpha:Math.min(1,C.st*2)}) },
+  { id:'kinPop', family:'Kinetic Type', name:'Pop kinetic', defStagger:50, fx:C=>({scX:1+Math.sin(C.st*Math.PI)*0.4, scY:1+Math.sin(C.st*Math.PI)*0.4, alpha:Math.min(1,C.st*2)}) },
+  { id:'kinWave', family:'Kinetic Type', name:'Onda kinetic', defStagger:25, fx:C=>({dy:Math.sin(C.st*Math.PI*2+C.i*0.8)*30*(1-C.st*0.5), alpha:Math.min(1,C.st*2)}) },
+  { id:'kinPunch', family:'Kinetic Type', name:'Golpe kinetic', defStagger:35, fx:C=>({dx:(1-C.st)*(hash(C.i)>0.5?1:-1)*90, scX:1.3-0.3*C.st, scY:1.3-0.3*C.st, alpha:Math.min(1,C.st*2)}) },
+  { id:'kinRoll', family:'Kinetic Type', name:'Rodado kinetic', defStagger:30, fx:C=>({rot:(1-C.st)*180, dy:(1-C.st)*40, alpha:Math.min(1,C.st*2)}) },
+  { id:'kinStretch', family:'Kinetic Type', name:'Estiramiento kinetic', defStagger:30, fx:C=>({scX:1.6-0.6*C.st, scY:0.5+0.5*C.st, alpha:Math.min(1,C.st*2)}) },
+  { id:'kinZoom', family:'Kinetic Type', name:'Zoom kinetic', defStagger:30, fx:C=>({scX:0.3+0.7*C.st, scY:0.3+0.7*C.st, rot:(1-C.st)*30, alpha:Math.min(1,C.st*1.5)}) },
+
+  { id:'edSerif', family:'Editorial Elegante', name:'Serif elegante', defStagger:28, fx:C=>({kern:(1-C.e)*30, dy:(1-C.e)*14, alpha:C.e}) },
+  { id:'edMinimal', family:'Editorial Elegante', name:'Minimal', defStagger:30, fx:C=>({dx:(1-C.e)*-80, alpha:C.e}) },
+  { id:'edRefined', family:'Editorial Elegante', name:'Refinado', defStagger:25, fx:C=>({alpha:C.e, blur:(1-C.e)*3, dy:(1-C.e)*10}) },
+  { id:'edGold', family:'Editorial Elegante', name:'Oro', defStagger:20, fx:C=>({fill:'hsl('+(48-((1-C.e)*8))+',85%,55%)', alpha:C.e, dy:(1-C.e)*12}) },
+  { id:'edEditorial', family:'Editorial Elegante', name:'Editorial', defStagger:22, fx:C=>({kern:(1-C.e)*26, dy:(1-C.e)*18, alpha:C.e}) },
+  { id:'edSwiss', family:'Editorial Elegante', name:'Suizo limpio', defStagger:35, fx:C=>({dx:(1-C.e)*60, alpha:C.e}) },
+  { id:'edBaseline', family:'Editorial Elegante', name:'Ascenso de linea base', defStagger:30, fx:C=>({dy:(1-C.e)*24, alpha:C.e, blur:(1-C.e)*2}) },
+  { id:'edOptical', family:'Editorial Elegante', name:'Ajuste optico', defStagger:25, fx:C=>({scX:1+(1-C.e)*0.08, scY:1-(1-C.e)*0.05, alpha:C.e}) },
+  { id:'edOvershoot', family:'Editorial Elegante', name:'Sobreimpulso sutil', defStagger:35, defEasing:'backOut', fx:C=>({dx:(1-C.e)*-120, alpha:C.e}) },
+  { id:'edFine', family:'Editorial Elegante', name:'Fundido fino', defStagger:30, fx:C=>({alpha:C.e, blur:(1-C.e)*1.5}) },
+
+  { id:'whipLeft', family:'Whip y Overshoot', name:'Whip izquierda', defStagger:12, defEasing:'expoOut', fx:C=>({dx:(1-C.e)*-500, rot:(1-C.e)*-8, blur:(1-C.e)*6, alpha:C.e}) },
+  { id:'whipRight', family:'Whip y Overshoot', name:'Whip derecha', defStagger:12, defEasing:'expoOut', fx:C=>({dx:(1-C.e)*500, rot:(1-C.e)*8, blur:(1-C.e)*6, alpha:C.e}) },
+  { id:'whipUp', family:'Whip y Overshoot', name:'Whip arriba', defStagger:12, defEasing:'expoOut', fx:C=>({dy:(1-C.e)*-320, rot:(1-C.e)*-8, blur:(1-C.e)*6, alpha:C.e}) },
+  { id:'whipDown', family:'Whip y Overshoot', name:'Whip abajo', defStagger:12, defEasing:'expoOut', fx:C=>({dy:(1-C.e)*320, rot:(1-C.e)*8, blur:(1-C.e)*6, alpha:C.e}) },
+  { id:'overScale', family:'Whip y Overshoot', name:'Sobreimpulso de escala', defStagger:35, defEasing:'backOut', fx:C=>({scX:0.2+0.8*C.e, scY:0.2+0.8*C.e, alpha:C.e}) },
+  { id:'overRotate', family:'Whip y Overshoot', name:'Sobreimpulso de giro', defStagger:30, defEasing:'backOut', fx:C=>({rot:(1-C.e)*-45, alpha:C.e}) },
+  { id:'overSlide', family:'Whip y Overshoot', name:'Sobreimpulso de deslizamiento', defStagger:30, defEasing:'backOut', fx:C=>({dx:(1-C.e)*200, alpha:Math.min(1,C.e*2)}) },
+  { id:'snapIn', family:'Whip y Overshoot', name:'Ajuste elastico', defStagger:25, defEasing:'elastic', fx:C=>({dx:(1-C.e)*-240, alpha:Math.min(1,C.e*2)}) },
+  { id:'punchScale', family:'Whip y Overshoot', name:'Escala con puno', defStagger:40, fx:C=>({scX:1+Math.sin(C.e*Math.PI)*0.25, scY:1+Math.sin(C.e*Math.PI)*0.25, alpha:Math.min(1,C.e*2)}) },
+  { id:'slamIn', family:'Whip y Overshoot', name:'Golpe de entrada', defStagger:30, defEasing:'bounce', fx:C=>({dy:(1-C.e)*-260, alpha:Math.min(1,C.e*3)}) },
+
+  { id:'grainIn', family:'Texturas y Grano', name:'Grano', defStagger:15, fx:C=>({alpha:C.e*(0.85+0.15*Math.sin(C.t*70+C.i))}) },
+  { id:'stencilIn', family:'Texturas y Grano', name:'Estencil', forceMode:'stroke', defStagger:25, fx:C=>({strokeW:(1-C.e)*14+2, alpha:C.e}) },
+  { id:'grunge', family:'Texturas y Grano', name:'Grunge', defStagger:20, fx:C=>({dx:(hash(C.i*3+Math.floor(C.t*8))-0.5)*10*(1-C.e), dy:(hash(C.i*7+Math.floor(C.t*8))-0.5)*10*(1-C.e), alpha:Math.min(1,C.e*2)}) },
+  { id:'vhsIn', family:'Texturas y Grano', name:'VHS', defStagger:20, fx:C=>({dupes:[{dx:-(1-C.e)*6,color:'#ff2222',alpha:0.6,gco:'screen'},{dx:(1-C.e)*6,color:'#2222ff',alpha:0.6,gco:'screen'}], dy:(hash(C.i+Math.floor(C.t*10))-0.5)*4*(1-C.e), alpha:C.e}) },
+  { id:'blurBlend', family:'Texturas y Grano', name:'Fundido con blur', defStagger:25, fx:C=>({blur:(1-C.e)*16, alpha:C.e, scX:1.02-0.02*C.e, scY:1.02-0.02*C.e}) },
+  { id:'inkReveal', family:'Texturas y Grano', name:'Tinta', defStagger:20, fx:C=>({clip:C.st, clipDir:'center', blur:(1-C.st)*10, alpha:1}) },
+  { id:'paperSlide', family:'Texturas y Grano', name:'Papel', defStagger:30, fx:C=>({dx:(1-C.e)*90, rot:(1-C.e)*2, alpha:C.e}) },
+  { id:'tapePeel', family:'Texturas y Grano', name:'Cinta adhesiva', defStagger:20, fx:C=>({clip:C.st, clipDir:'tb', rot:(1-C.e)*-6, dy:(1-C.e)*-30, alpha:1}) },
+  { id:'photocopy', family:'Texturas y Grano', name:'Fotocopia', defStagger:18, fx:C=>({blur:(1-C.st)*10, alpha:Math.min(1,C.st*2), dupes:[{dx:2,dy:2,color:'#999999',alpha:0.35}]}) },
+  { id:'stampInk', family:'Texturas y Grano', name:'Sello de tinta', defStagger:22, fx:C=>({scX:2.4-1.4*C.st, scY:2.4-1.4*C.st, rot:(hash(C.i)-0.5)*6*(1-C.st), alpha:Math.min(1,C.st*2)}) },
+
+  { id:'fluidWave', family:'Flujo y Liquido', name:'Onda fluida', defStagger:0, params:[{key:'amp',label:'Amplitud',min:5,max:80,step:1,def:30},{key:'speed',label:'Velocidad',min:1,max:15,step:1,def:5}], fx:(C,P)=>({dy:Math.sin(C.t*P.speed+C.i*0.4)*P.amp*Math.min(1,C.e*2), skew:Math.cos(C.t*P.speed+C.i*0.4)*0.15*Math.min(1,C.e*2), alpha:Math.min(1,C.e*2)}) },
+  { id:'ripple2', family:'Flujo y Liquido', name:'Ripple suave', defStagger:0, params:[{key:'amp',label:'Amplitud',min:5,max:40,step:1,def:20},{key:'speed',label:'Velocidad',min:1,max:12,step:1,def:4}], fx:(C,P)=>({scX:1+Math.sin(C.t*P.speed-C.i*0.6)*P.amp/100, scY:1-Math.sin(C.t*P.speed-C.i*0.6)*P.amp/100, alpha:Math.min(1,C.e*2)}) },
+  { id:'droplet', family:'Flujo y Liquido', name:'Gota pequena', defStagger:45, fx:C=>({dy:(1-C.st)*-70+Math.abs(Math.sin(C.st*Math.PI*2))*30, alpha:Math.min(1,C.st*2)}) },
+  { id:'jellyWave2', family:'Flujo y Liquido', name:'Gelatina ondulada', defStagger:0, params:[{key:'speed',label:'Velocidad',min:2,max:12,step:1,def:5}], fx:(C,P)=>({scX:1+Math.sin(C.t*P.speed+C.i*0.6)*0.09, scY:1-Math.sin(C.t*P.speed+C.i*0.6)*0.09, alpha:Math.min(1,C.e*2)}) },
+  { id:'cascade', family:'Flujo y Liquido', name:'Cascada', defStagger:30, fx:C=>({dy:(1-C.st)*-(40+(C.i%5)*16), alpha:Math.min(1,C.st*2)}) },
+  { id:'surf', family:'Flujo y Liquido', name:'Surf', defStagger:0, params:[{key:'speed',label:'Velocidad',min:2,max:12,step:1,def:5}], fx:(C,P)=>({dy:Math.sin(C.t*P.speed+C.i)*14, rot:Math.sin(C.t*P.speed+C.i)*8, alpha:Math.min(1,C.e*2)}) },
+  { id:'undulate', family:'Flujo y Liquido', name:'Ondulacion', defStagger:0, params:[{key:'speed',label:'Velocidad',min:1,max:12,step:1,def:4}], fx:(C,P)=>({skew:Math.sin(C.t*P.speed+C.i*0.5)*0.3, dy:Math.sin(C.t*P.speed*0.8+C.i)*10, alpha:Math.min(1,C.e*2)}) },
+  { id:'bubbleIn', family:'Flujo y Liquido', name:'Burbujas', defStagger:40, defEasing:'bounce', fx:C=>({scX:0.2+0.8*C.st, scY:0.2+0.8*C.st, dy:(1-C.st)*-60, alpha:Math.min(1,C.st*2)}) },
+  { id:'splash2', family:'Flujo y Liquido', name:'Salpicadura doble', defStagger:35, fx:C=>({dy:-Math.abs(Math.sin(C.st*Math.PI*2))*90, scX:1+Math.sin(C.st*Math.PI)*0.35, scY:1-Math.sin(C.st*Math.PI)*0.35, alpha:Math.min(1,C.st*2)}) },
+  { id:'current', family:'Flujo y Liquido', name:'Corriente', defStagger:30, fx:C=>({dx:(1-C.st)*140, dy:Math.sin(C.t*6+C.i)*8*(1-C.st), alpha:Math.min(1,C.st*2)}) },
+
+  { id:'maskLeft', family:'Minimal Moderno', name:'Mascara izquierda', defStagger:0, defInDur:1.6, fx:C=>({clip:C.st, clipDir:'lr', alpha:1}) },
+  { id:'maskRight', family:'Minimal Moderno', name:'Mascara derecha', defStagger:0, defInDur:1.6, fx:C=>({clip:C.st, clipDir:'rl', alpha:1}) },
+  { id:'maskTop', family:'Minimal Moderno', name:'Mascara superior', defStagger:0, defInDur:1.6, fx:C=>({clip:C.st, clipDir:'tb', alpha:1}) },
+  { id:'maskBottom', family:'Minimal Moderno', name:'Mascara inferior', defStagger:0, defInDur:1.6, fx:C=>({clip:C.st, clipDir:'bt', alpha:1}) },
+  { id:'splitReveal', family:'Minimal Moderno', name:'Revelado dividido', defStagger:0, defInDur:1.6, fx:C=>({clip:C.st, clipDir:'center', alpha:1}) },
+  { id:'fadeSlide', family:'Minimal Moderno', name:'Fundido deslizante', defStagger:30, fx:C=>({dx:(1-C.e)*-40, alpha:C.e}) },
+  { id:'scaleSoft', family:'Minimal Moderno', name:'Escala suave', defStagger:35, fx:C=>({scX:0.96+0.04*C.e, scY:0.96+0.04*C.e, alpha:C.e}) },
+  { id:'trackingIn', family:'Minimal Moderno', name:'Tracking de entrada', defStagger:25, fx:C=>({extra:(1-C.e)*40, alpha:C.e}) },
+  { id:'blurReveal2', family:'Minimal Moderno', name:'Revelado con blur', defStagger:25, fx:C=>({blur:(1-C.e)*12, alpha:C.e}) },
+  { id:'riseFade', family:'Minimal Moderno', name:'Ascenso y fundido', defStagger:30, fx:C=>({dy:(1-C.e)*36, alpha:C.e}) },
+
+  { id:'tiltIn', family:'3D Profundo', name:'Inclinacion 3D', defStagger:25, fx:C=>({rot:(1-C.e)*-35, scY:0.8+0.2*C.e, blur:(1-C.e)*5, alpha:C.e}) },
+  { id:'rotateY3D', family:'3D Profundo', name:'Rotacion Y', defStagger:30, fx:C=>({scX:Math.cos((1-C.e)*Math.PI), alpha:1}) },
+  { id:'depthField', family:'3D Profundo', name:'Campo de profundidad', defStagger:20, fx:C=>({scX:0.6+0.4*C.e*hash(C.i), scY:0.6+0.4*C.e*hash(C.i), blur:(1-C.e)*10*hash(C.i), alpha:Math.min(1,C.e*2)}) },
+  { id:'perspScale', family:'3D Profundo', name:'Escala en perspectiva', defStagger:30, fx:C=>({scX:1.4-0.4*C.e, scY:1.4-0.4*C.e, dy:(1-C.e)*40, blur:(1-C.e)*6, alpha:C.e}) },
+  { id:'orbit3D', family:'3D Profundo', name:'Orbita 3D', defStagger:0, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>({scX:Math.cos(C.t*P.speed+C.i*0.5), rot:Math.sin(C.t*P.speed+C.i*0.5)*10, alpha:Math.min(1,C.e*2)}) },
+  { id:'flyThrough', family:'3D Profundo', name:'Vuelo a traves', defStagger:25, fx:C=>({scX:0.1+0.9*C.st, scY:0.1+0.9*C.st, blur:(1-C.st)*20, alpha:Math.min(1,C.st*2)}) },
+  { id:'carousel', family:'3D Profundo', name:'Carrusel', defStagger:0, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>({dx:Math.sin(C.t*P.speed+C.i*0.6)*220, scX:Math.cos(C.t*P.speed+C.i*0.6), alpha:Math.min(1,C.e*2)}) },
+  { id:'zoomBounce', family:'3D Profundo', name:'Zoom con rebote', defStagger:35, defEasing:'elastic', fx:C=>({scX:0.4+0.6*C.e, scY:0.4+0.6*C.e, alpha:Math.min(1,C.e*2)}) },
+  { id:'parallaxLoop', family:'3D Profundo', name:'Paralaje continuo', defStagger:0, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:3}], fx:(C,P)=>({dx:Math.sin(C.t*P.speed+C.i)*12, scX:1+Math.sin(C.t*P.speed+C.i)*0.05, scY:1+Math.sin(C.t*P.speed+C.i)*0.05, alpha:1}) },
+  { id:'cubeRoll', family:'3D Profundo', name:'Rueda de cubo', defStagger:30, fx:C=>({scY:Math.sin(C.st*Math.PI), dy:(1-C.st)*30, alpha:Math.min(1,C.st*2)}) },
+
+  { id:'letterFall', family:'Letras Objeto', name:'Caida de letras', defStagger:35, fx:C=>({dy:(1-C.st)*-90, alpha:Math.min(1,C.st*2)}) },
+  { id:'letterRise', family:'Letras Objeto', name:'Ascenso de letras', defStagger:35, fx:C=>({dy:(1-C.st)*40, alpha:C.st}) },
+  { id:'letterShuffle', family:'Letras Objeto', name:'Barajado', defStagger:40, params:[{key:'power',label:'Dispersion',min:20,max:120,step:10,def:60}], fx:(C,P)=>({dx:(hash(C.i)-0.5)*2*P.power*(1-C.st), dy:(hash(C.i+4)-0.5)*2*P.power*(1-C.st), alpha:Math.min(1,C.st*2)}) },
+  { id:'letterWobbleIn', family:'Letras Objeto', name:'Vaiven de entrada', defStagger:30, fx:C=>({rot:(1-C.st)*30*Math.sin(C.i), alpha:Math.min(1,C.st*2)}) },
+  { id:'letterScaleCascade', family:'Letras Objeto', name:'Cascada de escala', defStagger:45, fx:C=>({scX:1.4-0.4*C.st, scY:1.4-0.4*C.st, dy:(1-C.st)*10, alpha:Math.min(1,C.st*2)}) },
+  { id:'letterBlurIn', family:'Letras Objeto', name:'Blur por letra', defStagger:30, fx:C=>({blur:(1-C.st)*14, alpha:Math.min(1,C.st*2)}) },
+  { id:'letterFlip', family:'Letras Objeto', name:'Volteo por letra', defStagger:30, fx:C=>({scX:Math.cos((1-C.st)*Math.PI/2), alpha:1}) },
+  { id:'letterSwing', family:'Letras Objeto', name:'Balanceo por letra', defStagger:40, fx:C=>({rot:Math.sin(C.st*Math.PI)*40*(1-C.st*0.5), alpha:Math.min(1,C.st*2)}) },
+  { id:'letterPulse', family:'Letras Objeto', name:'Pulso por letra', defStagger:0, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:4}], fx:(C,P)=>({scX:1+Math.sin(C.t*P.speed+C.i*0.5)*0.08, scY:1+Math.sin(C.t*P.speed+C.i*0.5)*0.08, alpha:1}) },
+  { id:'letterHop', family:'Letras Objeto', name:'Brinco por letra', defStagger:45, fx:C=>({dy:-Math.abs(Math.sin(C.st*Math.PI))*30, alpha:Math.min(1,C.st*2)}) },
+
+  { id:'explosion2', family:'Espectaculares', name:'Explosion doble', defStagger:0, params:[{key:'power',label:'Potencia',min:50,max:400,step:10,def:240}], fx:(C,P)=>{ const a=hash(C.i)*Math.PI*2; const d=(1-C.e)*P.power; return {dx:Math.cos(a)*d, dy:Math.sin(a)*d, rot:(1-C.e)*hash(C.i+9)*180, dupes:[{dx:Math.cos(a)*d*0.6,dy:Math.sin(a)*d*0.6,color:'#ffffff',alpha:0.4,gco:'screen'}], alpha:Math.min(1,C.e*2)}; } },
+  { id:'shockwave', family:'Espectaculares', name:'Onda expansiva', defStagger:0, fx:C=>({scX:2.2-1.2*C.e, scY:2.2-1.2*C.e, blur:(1-C.e)*12, alpha:Math.min(1,C.e*1.5)}) },
+  { id:'trailBlur', family:'Espectaculares', name:'Estela con blur', defStagger:25, params:[{key:'len',label:'Longitud',min:1,max:6,step:1,def:3},{key:'spread',label:'Distancia',min:5,max:40,step:1,def:18}], fx:(C,P)=>{ const dupes=[]; for(let k=1;k<=P.len;k++)dupes.push({dx:-k*P.spread*(1-C.e*0.4), alpha:0.3/k}); return {dupes, alpha:C.e}; } },
+  { id:'neonFlicker', family:'Espectaculares', name:'Neon parpadeante', defStagger:0, params:[{key:'speed',label:'Velocidad',min:2,max:20,step:1,def:10}], fx:(C,P)=>({shadow:C.state.stroke, shadowBlur:20*(Math.sin(C.t*P.speed+C.i)>0?1:0.3), alpha:1}) },
+  { id:'hologram', family:'Espectaculares', name:'Holograma', defStagger:0, params:[{key:'speed',label:'Velocidad',min:2,max:12,step:1,def:6}], fx:(C,P)=>({dupes:[{dx:-3,color:'#00ffff',alpha:0.5,gco:'screen'},{dx:3,color:'#ff00ff',alpha:0.5,gco:'screen'}], skew:Math.sin(C.t*P.speed+C.i*0.5)*0.08, alpha:0.9}) },
+  { id:'fireRise', family:'Espectaculares', name:'Ascenso de fuego', defStagger:30, fx:C=>({dy:(1-C.st)*-120, fill:'hsl('+(15+Math.sin(C.t*9+C.i)*10)+',90%,55%)', blur:(1-C.st)*8, dupes:[{dx:0,dy:10,color:'#ff6600',alpha:0.35,gco:'screen'}], alpha:Math.min(1,C.st*2)}) },
+  { id:'electric', family:'Espectaculares', name:'Electrico', defStagger:0, params:[{key:'speed',label:'Velocidad',min:5,max:30,step:1,def:18}], fx:(C,P)=>({dx:(hash(C.i+Math.floor(C.t*P.speed))-0.5)*10*(1-C.e+0.3), dupes:[{dx:-4,color:'#00e5ff',alpha:0.5,gco:'screen'}], alpha:1}) },
+  { id:'glitch2', family:'Espectaculares', name:'Glitch de bloques', defStagger:0, params:[{key:'speed',label:'Velocidad',min:5,max:25,step:1,def:12}], fx:(C,P)=>({dx:Math.floor(hash(C.i+Math.floor(C.t*P.speed))*5-2)*8*(1-C.e+0.3), alpha:1}) },
+  { id:'confetti2', family:'Espectaculares', name:'Confeti', defStagger:0, params:[{key:'speed',label:'Velocidad',min:1,max:10,step:1,def:4}], fx:(C,P)=>{ const dupes=[]; const cols=['#ff4200','#00b4ff','#2ecc40']; for(let k=0;k<3;k++){ const a=hash(C.i+k*7)*Math.PI*2; const r=20+hash(C.i+k*3)*60; dupes.push({dx:Math.cos(a)*r+Math.sin(C.t*P.speed+k)*8, dy:Math.sin(a)*r+Math.cos(C.t*P.speed+k)*8, color:cols[k], alpha:0.7, gco:'screen'}); } return {dupes, alpha:1}; } },
+  { id:'laserIn', family:'Espectaculares', name:'Laser', defStagger:25, fx:C=>({dx:(1-C.e)*300, blur:(1-C.e)*6, dupes:[{dx:-(1-C.e)*40,color:C.state.stroke,alpha:0.6,gco:'screen'}], alpha:C.e}) }
 ];
 const PRESET_BY_ID={};
 PRESETS.forEach(p=>PRESET_BY_ID[p.id]=p);
