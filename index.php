@@ -143,14 +143,16 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
 
     input[type=range] {
       -webkit-appearance:none; appearance:none;
-      width:100%; height:4px; border:none; border-radius:2px;
-      background:var(--border2); outline:none; padding:0;
+      width:100%; height:22px; border:none; border-radius:2px;
+      background:linear-gradient(var(--border2),var(--border2)) no-repeat center/100% 4px;
+      outline:none; padding:0;
     }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
       background:var(--ink); cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.2);
     }
     input[type=range]::-moz-range-thumb { width:16px; height:16px; border:none; border-radius:50%; background:var(--ink); cursor:pointer; }
+    input[type=range]::-moz-range-track { height:4px; background:var(--border2); border-radius:2px; }
     .range-val { font-weight:700; min-width:48px; text-align:right; font-variant-numeric:tabular-nums; font-size:0.8rem; }
 
     input[type=color] {
@@ -369,7 +371,11 @@ POWER</textarea>
     <div class="sec-title">Letra seleccionada</div>
     <p class="hint">Toca una letra en el escenario para seleccionarla. Arrastra la letra para moverla y arrastra el tirador naranja para cambiar su tamano. Clic fuera = deseleccionar.</p>
     <div class="field">
-      <label id="letterName">Ninguna letra seleccionada</label>
+      <div class="field-row" style="gap:8px">
+        <label id="letterName" style="flex:1;margin:0">Ninguna letra seleccionada</label>
+        <button class="tl-undo" id="btnLetterPrev" title="Letra anterior">&#8592;</button>
+        <button class="tl-undo" id="btnLetterNext" title="Letra siguiente">&#8594;</button>
+      </div>
     </div>
     <div class="field">
       <label>Fuente de la letra</label>
@@ -1761,6 +1767,18 @@ $('btnLetterReset').addEventListener('click',()=>{
   saveLS();
   updateLetterCtrls();
 });
+$('btnLetterPrev').addEventListener('click',()=>{
+  const n=state.text.replace(/\n/g,'').length;
+  if(!n)return;
+  selLetter=selLetter==null?0:Math.max(0,selLetter-1);
+  updateLetterCtrls();
+});
+$('btnLetterNext').addEventListener('click',()=>{
+  const n=state.text.replace(/\n/g,'').length;
+  if(!n)return;
+  selLetter=selLetter==null?0:Math.min(n-1,selLetter+1);
+  updateLetterCtrls();
+});
 $('btnLettersResetAll').addEventListener('click',()=>{
   state.letters={};
   selLetter=null;
@@ -1787,10 +1805,8 @@ preview.addEventListener('pointerdown',e=>{
   }
   let hit=null, bd=1e9;
   lastLayout.forEach(it=>{
-    if(p.x>=it.x-8&&p.x<=it.x+it.w+8&&Math.abs(p.y-it.y)<=it.h/2+12){
-      const d=Math.hypot(p.x-(it.x+it.w/2),p.y-it.y);
-      if(d<bd){ bd=d; hit=it.idx; }
-    }
+    const d=Math.hypot(p.x-(it.mx!=null?it.mx:it.x+it.w/2),p.y-(it.my!=null?it.my:it.y));
+    if(d<=Math.max(it.w,it.h)*0.75+8&&d<bd){ bd=d; hit=it.idx; }
   });
   if(hit!=null){
     selLetter=hit;
