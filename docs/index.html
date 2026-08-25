@@ -1661,16 +1661,12 @@ async function exportVideo(ctx,fps,showBg,wantAlpha){
 
 let ffmpegPromise=null;
 let lastMovFrames=0;
-const FFMPEG_CDNS=[
-  'https://cdn.jsdelivr.net/npm/',
-  'https://unpkg.com/'
-];
 function loadScriptWithFallback(paths){
   return new Promise((res,rej)=>{
     let i=0;
     const tryNext=()=>{
       if(i>=paths.length){
-        rej(new Error('No se pudo cargar el codificador FFmpeg desde ningun CDN'));
+        rej(new Error('No se pudo cargar el codificador FFmpeg (revisa que exista la carpeta ffmpeg/ junto al index.php)'));
         return;
       }
       const s=document.createElement('script');
@@ -1689,21 +1685,31 @@ function loadScriptWithFallback(paths){
 function ensureFfmpeg(){
   if(!ffmpegPromise){
     ffmpegPromise=(async()=>{
-      await loadScriptWithFallback(FFMPEG_CDNS.map(c=>c+'@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js'));
-      await loadScriptWithFallback(FFMPEG_CDNS.map(c=>c+'@ffmpeg/util@0.12.1/dist/umd/index.js'));
+      let base='ffmpeg/';
+      try{ base=new URL('ffmpeg/',location.href).href; }catch(err){}
+      await loadScriptWithFallback([
+        base+'ffmpeg.js',
+        'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
+        'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js'
+      ]);
+      await loadScriptWithFallback([
+        base+'util.js',
+        'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js',
+        'https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js'
+      ]);
       const FF=FFmpegWASM.FFmpeg;
       const ff=new FF();
-      try{
-        await ff.load({
-          coreURL:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-          wasmURL:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'
-        });
-      }catch(err){
-        await ff.load({
-          coreURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-          wasmURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'
-        });
+      const cores=[
+        {coreURL:base+'ffmpeg-core.js',wasmURL:base+'ffmpeg-core.wasm'},
+        {coreURL:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',wasmURL:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'},
+        {coreURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',wasmURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'}
+      ];
+      let lastErr=null;
+      for(let i=0;i<cores.length;i++){
+        try{ await ff.load(cores[i]); lastErr=null; break; }
+        catch(err){ lastErr=err; }
       }
+      if(lastErr)throw lastErr;
       return ff;
     })();
     ffmpegPromise.catch(()=>{ ffmpegPromise=null; });
