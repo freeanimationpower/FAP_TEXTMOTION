@@ -9,6 +9,7 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffdc00">
   <link rel="icon" type="image/png" href="favicon.png">
   <title>Free Text Motion &mdash; Estudio de Texto Animado | Free Animation Power</title>
   <meta name="description" content="50 animaciones de texto editables con motion graphics. Fuentes de Google, exportacion WebM MP4 y GIF con y sin transparencia.">
@@ -50,6 +51,7 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
       overflow:hidden;
       line-height:1.5;
       -webkit-font-smoothing:antialiased;
+      touch-action:manipulation;
     }
     button { font-family:inherit; cursor:pointer; }
     input, select, textarea { font-family:inherit; }
@@ -88,9 +90,9 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
 
     .app {
       display:grid;
-      grid-template-rows:auto 1fr;
+      grid-template-rows:auto 1fr auto;
       grid-template-columns:290px 1fr 330px;
-      grid-template-areas:"nav nav nav" "left stage right";
+      grid-template-areas:"nav nav nav" "left stage right" "foot foot foot";
       gap:12px;
       padding:12px;
       height:100vh;
@@ -218,6 +220,13 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     }
     .play-btn:hover { background:var(--accent); color:var(--white); transform:scale(1.05); }
     .play-btn svg { width:18px; height:18px; }
+    .tl-undo {
+      width:36px; height:36px; border-radius:50%; flex-shrink:0;
+      border:1px solid var(--border2); background:var(--white); color:var(--ink);
+      font-size:1rem; line-height:1; transition:all .15s;
+    }
+    .tl-undo:hover { background:var(--warm); transform:translateY(-1px); }
+    .tl-undo:active { transform:scale(0.95); }
     .tl-track {
       flex:1; position:relative; height:44px; min-width:80px;
       background:var(--warm); border-radius:var(--radius-pill); cursor:pointer; overflow:hidden;
@@ -247,6 +256,23 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     details.family summary::after { content:"+"; font-weight:800; color:var(--muted); }
     details.family[open] summary::after { content:"–"; }
     details.family[open] summary { background:var(--yellow4); }
+    .kf-row { border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px; }
+    .kf-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .kf-head label { flex:1; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink3); }
+    .kf-x { width:22px; height:22px; border-radius:50%; border:1px solid var(--border2); background:var(--white); color:var(--muted); font-size:0.7rem; font-weight:700; flex-shrink:0; }
+    .kf-strip { position:relative; height:24px; background:var(--warm); border-radius:12px; cursor:crosshair; border:1px solid var(--border); touch-action:none; }
+    .kf-dot { position:absolute; top:50%; width:14px; height:14px; border-radius:50%; background:var(--ink); border:2px solid var(--white); transform:translate(-50%,-50%); cursor:grab; box-shadow:0 1px 4px rgba(0,0,0,0.25); touch-action:none; }
+    .kf-dot.selected { background:var(--accent); }
+    .kf-controls { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    .kf-del { border:none; background:var(--warm); border-radius:var(--radius-pill); padding:6px 12px; font-size:0.7rem; font-weight:700; color:var(--error); flex-shrink:0; }
+    .kf-on {
+      display:inline-block;
+      background:var(--accent); color:var(--white);
+      font-size:0.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;
+      padding:1px 7px; border-radius:999px; margin-left:6px; cursor:pointer;
+      vertical-align:middle;
+    }
+    label .kf-on { margin-top:2px; }
     .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:10px; }
     .preset {
       border:1px solid var(--border2); border-radius:var(--radius-pill);
@@ -276,30 +302,42 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
 
     .hint { font-size:0.7rem; color:var(--muted); line-height:1.5; }
     .footer-note {
-      position:fixed; bottom:4px; left:50%; transform:translateX(-50%);
-      font-size:0.66rem; color:var(--muted2); font-weight:600; z-index:50;
-      pointer-events:none; text-align:center;
+      grid-area:foot;
+      text-align:center;
+      font-size:0.66rem;
+      color:var(--muted2);
+      font-weight:600;
+      padding:2px 10px 10px;
+      pointer-events:none;
+      white-space:normal;
     }
 
     #renderCanvas, #fileInput { display:none; }
 
     @media (max-width:1100px) {
-      body { overflow:auto; }
-      .app { grid-template-columns:250px 1fr 290px; height:auto; min-height:100vh; }
+      .app { grid-template-columns:250px 1fr 290px; }
     }
     @media (max-width:920px) {
       body { overflow:auto; }
       .app {
-        display:flex; flex-direction:column; height:auto; min-height:100vh; gap:10px; padding:80px 10px 10px;
+        display:flex; flex-direction:column; height:auto; min-height:100vh; gap:10px; padding:80px 10px 12px;
       }
-      nav { position:fixed; top:10px; left:10px; right:10px; border-radius:var(--radius-pill); }
-      .nav-actions .nav-btn { padding:8px 10px; font-size:0.72rem; }
+      nav { position:fixed; top:8px; left:8px; right:8px; border-radius:var(--radius-pill); }
       .stage { order:1; }
-      .stage .canvas-wrap { min-height:260px; }
+      .stage .canvas-wrap { min-height:240px; padding:12px; }
       .panel-left { order:2; }
       .panel-right { order:3; }
       .panel { max-height:none; }
-      .footer-note { display:none; }
+      .timeline { flex-wrap:wrap; gap:10px; }
+      .tl-track { min-width:100%; order:-1; }
+      .footer-note { order:4; }
+    }
+    @media (max-width:560px) {
+      .nav-title, .nav-badge, .nav-divider { display:none; }
+      .nav-actions { gap:6px; }
+      .nav-actions .nav-btn { padding:8px 10px; font-size:0.72rem; }
+      .app { padding:70px 8px 10px; }
+      .panel { padding:12px; }
     }
   </style>
 </head>
@@ -330,12 +368,8 @@ POWER</textarea>
 
     <div class="sec-title">Tipografia</div>
     <div class="field">
-      <label>Fuente</label>
+      <label>Fuente (220 de Google)</label>
       <select id="fontFamily"></select>
-    </div>
-    <div class="field">
-      <label>Fuente personalizada de Google</label>
-      <input type="text" id="customFont" placeholder="ej. Rubik Mono One">
     </div>
     <div class="field">
       <label>Peso</label>
@@ -352,21 +386,21 @@ POWER</textarea>
       </div>
     </div>
     <div class="field">
-      <label>Tamaño</label>
+      <label id="sizeLabel">Tamaño</label>
       <div class="field-row">
         <input type="range" id="fontSize" min="20" max="300" value="150">
         <span class="range-val" id="fontSizeVal">150</span>
       </div>
     </div>
     <div class="field">
-      <label>Espaciado de letras</label>
+      <label id="letterSpaceLabel">Espaciado de letras</label>
       <div class="field-row">
         <input type="range" id="letterSpace" min="-20" max="100" value="0">
         <span class="range-val" id="letterSpaceVal">0</span>
       </div>
     </div>
     <div class="field">
-      <label>Interlineado</label>
+      <label id="lineHLabel">Interlineado</label>
       <div class="field-row">
         <input type="range" id="lineH" min="9" max="20" value="12">
         <span class="range-val" id="lineHVal">1.2</span>
@@ -424,6 +458,8 @@ POWER</textarea>
       </div>
     </div>
     <div class="timeline">
+      <button class="tl-undo" id="btnUndo" title="Deshacer (Ctrl+Z)">&#8630;</button>
+      <button class="tl-undo" id="btnRedo" title="Rehacer (Ctrl+Y)">&#8631;</button>
       <button class="play-btn" id="btnPlay">
         <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
@@ -498,21 +534,21 @@ POWER</textarea>
 
     <div class="sec-title">Transformacion</div>
     <div class="field">
-      <label>Opacidad</label>
+      <label id="opacityLabel">Opacidad</label>
       <div class="field-row">
         <input type="range" id="opacity" min="0" max="100" value="100">
         <span class="range-val" id="opacityVal">100%</span>
       </div>
     </div>
     <div class="field">
-      <label>Rotacion</label>
+      <label id="rotationLabel">Rotacion</label>
       <div class="field-row">
         <input type="range" id="rotation" min="-180" max="180" value="0">
         <span class="range-val" id="rotationVal">0°</span>
       </div>
     </div>
     <div class="field">
-      <label>Escala</label>
+      <label id="scaleLabel">Escala</label>
       <div class="field-row">
         <input type="range" id="scale" min="10" max="300" value="100">
         <span class="range-val" id="scaleVal">100%</span>
@@ -525,6 +561,10 @@ POWER</textarea>
         <span class="range-val" id="blurVal">0px</span>
       </div>
     </div>
+
+    <div class="sec-title">Keyframes</div>
+    <div id="kfPanel"></div>
+    <p class="hint">Activa una propiedad, haz clic en la barra para anadir keyframes en ese instante de la linea de tiempo y arrastra los puntos para moverlos.</p>
 
     <div class="sec-title">Efectos</div>
     <div class="switch-row">
@@ -550,6 +590,8 @@ POWER</textarea>
     </div>
 
   </aside>
+
+  <div class="footer-note">Free Text Motion &middot; parte del ecosistema Free Animation Power &middot; ESPACIO = reproducir/pausar</div>
 
 </div>
 
@@ -587,12 +629,27 @@ POWER</textarea>
 
 <canvas id="renderCanvas" width="1280" height="720"></canvas>
 <input type="file" id="fileInput" accept=".json,.textmotion">
-<div class="footer-note">Free Text Motion &middot; parte del ecosistema Free Animation Power &middot; ESPACIO = reproducir/pausar</div>
 
 <script>
 const $=id=>document.getElementById(id);
 const W=1280, H=720;
-const FONTS=["Archivo Black","Anton","Bebas Neue","Barlow Condensed","Oswald","Montserrat","Poppins","Inter","Space Grotesk","Space Mono","Playfair Display","DM Sans","Work Sans","Abril Fatface","Pacifico","Rubik Mono One"];
+const FONT_GROUPS={
+  'Display':["Anton","Archivo Black","Bebas Neue","Oswald","Barlow Condensed","Roboto Condensed","Abril Fatface","Alfa Slab One","Bangers","Black Ops One","Bowlby One SC","Bungee","Bungee Shade","Chango","Cinzel","Cinzel Decorative","Comfortaa","Courgette","Creepster","DM Serif Display","Exo 2","Fjalla One","Francois One","Fredoka One","Fugaz One","Josefin Sans","Knewave","Lilita One","Luckiest Guy","Monoton","Orbitron","Passion One","Poiret One","Press Start 2P","Righteous","Rubik Mono One","Russo One","Sigmar One","Squada One","Titan One","Ultra","Yeseva One"],
+  'Sans Serif':["Inter","Montserrat","Poppins","Roboto","Open Sans","Lato","Raleway","Work Sans","DM Sans","Space Grotesk","Outfit","Plus Jakarta Sans","Nunito","Nunito Sans","Rubik","Manrope","Karla","Mulish","Quicksand","Jost","Urbanist","Sora","Lexend","Albert Sans","Archivo","Public Sans","Figtree","Cabin"],
+  'Serif':["Playfair Display","Merriweather","Lora","Roboto Slab","Source Serif 4","PT Serif","Libre Baskerville","Crimson Text","Cormorant Garamond","EB Garamond","Spectral","Zilla Slab","Slabo 27px","Arvo","Literata"],
+  'Monoespaciadas':["Space Mono","JetBrains Mono","Fira Code","Source Code Pro","IBM Plex Mono","Roboto Mono","Ubuntu Mono","Cousine","Share Tech Mono","Anonymous Pro","Oxygen Mono"],
+  'Script y manuscritas':["Pacifico","Lobster","Dancing Script","Caveat","Satisfy","Great Vibes","Sacramento","Amatic SC","Shadows Into Light","Kalam","Indie Flower","Patrick Hand","Yellowtail","Allura","Cookie","Architects Daughter"],
+  'Decorativas':["Rye","Special Elite","Stardos Stencil","Audiowide","New Rocker","Ewert","UnifrakturMaguntia","Frijole"]
+};
+const FONT_GROUPS_EXTRA={
+  'Display extra':["Staatliches","Teko","Paytone One","Ramabhadra","Secular One","Viga","Fredoka","Bungee Inline","Bungee Outline","Bowlby One","Baloo 2","Coiny","Gugi","Hanalei Fill","Jolly Lodger","Kirang Haerang","Kumar One","Megrim","Nosifer","Pirata One","Plaster","Quantico","Rhodium Libre","Sancreek","Jomhuria"],
+  'Sans Serif extra':["Heebo","Hind","Assistant","Atkinson Hyperlegible","Barlow Semi Condensed","Signika","Signika Negative","Fira Sans","Fira Sans Condensed","Noto Sans","Source Sans 3","Saira","Saira Condensed","Titillium Web","Chivo","Bricolage Grotesque","Familjen Grotesk","Schibsted Grotesk","Instrument Sans","Hanken Grotesk","Onest","Belleza"],
+  'Serif extra':["Noto Serif","Noto Serif Display","Bitter","Bree Serif","DM Serif Text","Gelasio","Libre Caslon Text","Libre Caslon Display","Oranienbaum","Prata","Rozha One","Sahitya","Sumana","Vesper Libre","Vollkorn"],
+  'Mono extra':["Fira Mono","Inconsolata","B612 Mono","Cutive Mono","Overpass Mono","Azeret Mono","Red Hat Mono","Spline Sans Mono","Syne Mono","VT323"],
+  'Script extra':["Gochi Hand","Marck Script","Pinyon Script","Qwigley","Ruge Boogie","Sevillana","Mr Dafoe","Mrs Saint Delafield","Montez","Norican","Oleo Script","Petit Formal Script","Redressed","Rochester","Sofia"],
+  'Decorativas extra':["Astloch","Berkshire Swash","Bonbon","Butcherman","Emblema One","Fascinate","Fascinate Inline","Flamenco","Germania One","Goudy Bookletter 1911","Metal Mania","Modern Antiqua","MedievalSharp"]
+};
+const FONT_ALL=Object.assign({},FONT_GROUPS,FONT_GROUPS_EXTRA);
 
 function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 function hash(n){ const s=Math.sin(n*127.1)*43758.5453; return s-Math.floor(s); }
@@ -609,6 +666,34 @@ const EASE={
   bounce:t=>{ const n=7.5625,d=2.75; if(t<1/d)return n*t*t; if(t<2/d){t-=1.5/d;return n*t*t+0.75;} if(t<2.5/d){t-=2.25/d;return n*t*t+0.9375;} t-=2.625/d; return n*t*t+0.984375; }
 };
 
+const KF_PROPS=[
+  {key:'size',label:'Tamano',unit:'px',min:20,max:300,step:1,el:'fontSize'},
+  {key:'letterSpace',label:'Espaciado de letras',unit:'',min:-20,max:100,step:1,el:'letterSpace'},
+  {key:'lineH',label:'Interlineado',unit:'',min:9,max:20,step:1,el:'lineH'},
+  {key:'opacity',label:'Opacidad',unit:'%',min:0,max:100,step:1,el:'opacity'},
+  {key:'rotation',label:'Rotacion',unit:'°',min:-180,max:180,step:1,el:'rotation'},
+  {key:'scale',label:'Escala',unit:'%',min:10,max:300,step:1,el:'scale'}
+];
+function defaultKf(){
+  const o={};
+  KF_PROPS.forEach(p=>{o[p.key]={on:false,keys:[]};});
+  return o;
+}
+function kfValue(kf,t,fallback){
+  if(!kf||!kf.on||!kf.keys||!kf.keys.length)return fallback;
+  const k=kf.keys;
+  if(k.length===1)return k[0].v;
+  if(t<=k[0].t)return k[0].v;
+  if(t>=k[k.length-1].t)return k[k.length-1].v;
+  for(let i=0;i<k.length-1;i++){
+    if(t>=k[i].t&&t<=k[i+1].t){
+      const span=k[i+1].t-k[i].t;
+      const f=span>0?(t-k[i].t)/span:0;
+      return k[i].v+(k[i+1].v-k[i].v)*f;
+    }
+  }
+  return fallback;
+}
 const PRESETS=[
   { id:'fade', family:'Entradas', name:'Fade', fx:C=>({alpha:C.e}) },
   { id:'slideUp', family:'Entradas', name:'Sube', fx:C=>({dy:(1-C.e)*120, alpha:C.e}) },
@@ -773,11 +858,26 @@ const DEFAULT_STATE={
   shColor:"#000000",
   shBlur:16,
   time:0,
-  playing:false
+  playing:false,
+  kf:defaultKf()
 };
-let state=Object.assign({},DEFAULT_STATE,{presetParams:{}});
+let state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf()});
 
 const loadedFonts=new Set();
+function preloadAllFonts(){
+  const all=[];
+  Object.keys(FONT_ALL).forEach(g=>{
+    FONT_ALL[g].forEach(f=>{ all.push(f); loadedFonts.add(f); });
+  });
+  for(let i=0;i<all.length;i+=10){
+    const chunk=all.slice(i,i+10);
+    const q=chunk.map(f=>'family='+encodeURIComponent(f).replace(/%20/g,'+')+':wght@400;700;900').join('&');
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='https://fonts.googleapis.com/css2?'+q+'&display=swap';
+    document.head.appendChild(link);
+  }
+}
 function loadFont(name){
   if(!name||loadedFonts.has(name))return Promise.resolve();
   loadedFonts.add(name);
@@ -796,6 +896,12 @@ function paramDefaults(preset){
 
 function render(ctx,t,forceBg){
   const S=state;
+  const size=kfValue(S.kf.size,t,S.size);
+  const letterSpace=kfValue(S.kf.letterSpace,t,S.letterSpace);
+  const lineH=(kfValue(S.kf.lineH,t,S.lineH*10))/10;
+  const opacity=kfValue(S.kf.opacity,t,S.opacity);
+  const rotation=kfValue(S.kf.rotation,t,S.rotation);
+  const scale=kfValue(S.kf.scale,t,S.scale);
   ctx.clearRect(0,0,W,H);
   const showBg=forceBg!==undefined?forceBg:S.bgOn;
   if(showBg){ ctx.fillStyle=S.bg; ctx.fillRect(0,0,W,H); }
@@ -807,12 +913,12 @@ function render(ctx,t,forceBg){
   if(t<holdStart){ phase='in'; p=t/inDur; }
   else if(t>holdEnd&&S.outOn){ phase='out'; p=1-(t-holdEnd)/outDur; }
   p=clamp(p,0,1);
-  ctx.font=(S.italic?'italic ':'')+S.weight+' '+S.size+'px "'+S.font+'", sans-serif';
+  ctx.font=(S.italic?'italic ':'')+S.weight+' '+size+'px "'+S.font+'", sans-serif';
   ctx.textBaseline='middle';
   const lines=S.text.split('\n');
-  const lineH=S.size*S.lineH;
-  const totalH=lines.length*lineH;
-  const startY=H/2-totalH/2+lineH/2;
+  const lineHeight=size*lineH;
+  const totalH=lines.length*lineHeight;
+  const startY=H/2-totalH/2+lineHeight/2;
   const charsFlat=S.text.replace(/\n/g,'').split('');
   const totalChars=charsFlat.length;
   let wordIdx=-1, prevSpace=true;
@@ -824,18 +930,18 @@ function render(ctx,t,forceBg){
   const wordTotal=wordIdx+1;
   ctx.save();
   ctx.translate(W/2,H/2);
-  ctx.rotate(S.rotation*Math.PI/180);
-  ctx.scale(S.scale/100,S.scale/100);
+  ctx.rotate(rotation*Math.PI/180);
+  ctx.scale(scale/100,scale/100);
   ctx.translate(-W/2,-H/2);
-  ctx.globalAlpha=S.opacity/100;
+  ctx.globalAlpha=opacity/100;
   let charIdx=0;
   const positions=[];
   lines.forEach((line,li)=>{
     const chars=line.split('');
     const widths=chars.map(c=>ctx.measureText(c).width);
-    const totalW=widths.reduce((a,b)=>a+b,0)+Math.max(0,chars.length-1)*S.letterSpace;
+    const totalW=widths.reduce((a,b)=>a+b,0)+Math.max(0,chars.length-1)*letterSpace;
     let lineX=S.align==='left'?80:(S.align==='right'?W-80-totalW:W/2-totalW/2);
-    const y=startY+li*lineH;
+    const y=startY+li*lineHeight;
     let x=lineX;
     let grad=null;
     if(preset.gradient){
@@ -878,11 +984,11 @@ function render(ctx,t,forceBg){
         const fw=widths[ci];
         const cl=clamp(T.clip,0,1);
         ctx.beginPath();
-        if(T.clipDir==='rl'){ ctx.rect(fw/2-fw*cl,-S.size,fw*cl,S.size*2); }
-        else if(T.clipDir==='tb'){ ctx.rect(-fw/2,-S.size,fw,S.size*2*cl); }
-        else if(T.clipDir==='bt'){ ctx.rect(-fw/2,S.size-S.size*2*cl,fw,S.size*2*cl); }
-        else if(T.clipDir==='center'){ ctx.rect(-fw*cl/2,-S.size*cl,fw*cl,S.size*2*cl); }
-        else { ctx.rect(-fw/2,-S.size,fw*cl,S.size*2); }
+        if(T.clipDir==='rl'){ ctx.rect(fw/2-fw*cl,-size,fw*cl,size*2); }
+        else if(T.clipDir==='tb'){ ctx.rect(-fw/2,-size,fw,size*2*cl); }
+        else if(T.clipDir==='bt'){ ctx.rect(-fw/2,size-size*2*cl,fw,size*2*cl); }
+        else if(T.clipDir==='center'){ ctx.rect(-fw*cl/2,-size*cl,fw*cl,size*2*cl); }
+        else { ctx.rect(-fw/2,-size,fw*cl,size*2); }
         ctx.clip();
       }
       const gx=-widths[ci]/2, gy=0;
@@ -902,7 +1008,7 @@ function render(ctx,t,forceBg){
         });
       }
       ctx.restore();
-      x+=widths[ci]+S.letterSpace+(T.extra||0);
+      x+=widths[ci]+letterSpace+(T.extra||0);
       charIdx++;
     });
   });
@@ -911,7 +1017,7 @@ function render(ctx,t,forceBg){
     const cur=positions[vis];
     if(cur&&Math.floor(t*2)%2===0){
       ctx.fillStyle=S.fill;
-      ctx.fillRect(cur.x-2,cur.y-S.size*0.4,4,S.size*0.8);
+      ctx.fillRect(cur.x-2,cur.y-size*0.4,4,size*0.8);
     }
   }
   ctx.restore();
@@ -969,8 +1075,22 @@ function wirePills(id,key,attr,parse){
 }
 function wireRange(id,key,suffix,scale,onDone){
   const el=$(id), val=$(id+'Val');
+  const kfProp=KF_PROPS.find(p=>p.el===id);
   el.addEventListener('input',()=>{
-    state[key]=parseFloat(el.value)*(scale||1);
+    const raw=parseFloat(el.value);
+    if(kfProp){
+      const o=state.kf[kfProp.key];
+      if(o&&o.on&&o.keys.length){
+        let best=0, bd=1e9;
+        o.keys.forEach((k,i)=>{ const d=Math.abs(k.t-state.time); if(d<bd){ bd=d; best=i; } });
+        o.keys[best].v=raw;
+        buildKfUI();
+        saveLS();
+        if(val)val.textContent=el.value+(suffix||'');
+        return;
+      }
+    }
+    state[key]=raw*(scale||1);
     if(val)val.textContent=el.value+(suffix||'');
     saveLS();
     if(onDone)onDone();
@@ -1049,7 +1169,6 @@ function selectPreset(id){
 function syncUI(){
   $('txtContent').value=state.text;
   $('fontFamily').value=state.font;
-  $('customFont').value=state.font;
   $('fontSize').value=state.size; $('fontSizeVal').textContent=state.size;
   $('letterSpace').value=state.letterSpace; $('letterSpaceVal').textContent=state.letterSpace;
   $('lineH').value=Math.round(state.lineH*10); $('lineHVal').textContent=state.lineH.toFixed(1);
@@ -1080,6 +1199,8 @@ function syncUI(){
   setSwitch('shSwitch',state.shOn);
   document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('active',b.dataset.p===state.preset));
   buildTicks();
+  syncStaticSliders();
+  buildKfUI();
 }
 
 function buildPresetList(){
@@ -1127,7 +1248,207 @@ $('presetSearch').addEventListener('input',e=>{
   });
 });
 
-function saveLS(){
+let kfSel=null;
+function buildKfUI(){
+  const wrap=$('kfPanel');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const dur=state.duration||3;
+  KF_PROPS.forEach(p=>{
+    const o=state.kf[p.key]||(state.kf[p.key]={on:false,keys:[]});
+    const row=document.createElement('div');
+    row.className='kf-row';
+    const head=document.createElement('div');
+    head.className='kf-head';
+    const lab=document.createElement('label');
+    lab.textContent=p.label;
+    const sw=document.createElement('div');
+    sw.className='switch'+(o.on?' on':'');
+    sw.addEventListener('click',()=>{
+      o.on=!o.on;
+      if(o.on&&!o.keys.length){
+        o.keys.push({t:0,v:state[p.key]});
+        kfSel={key:p.key,idx:0};
+      }
+      saveLS();
+      syncStaticSliders();
+      buildKfUI();
+    });
+    const x=document.createElement('button');
+    x.className='kf-x';
+    x.textContent='x';
+    x.title='Quitar todos los keyframes de esta propiedad';
+    x.addEventListener('click',()=>{
+      o.keys=[];
+      if(kfSel&&kfSel.key===p.key)kfSel=null;
+      saveLS();
+      buildKfUI();
+    });
+    head.appendChild(lab);
+    head.appendChild(sw);
+    head.appendChild(x);
+    const strip=document.createElement('div');
+    strip.className='kf-strip';
+    strip.addEventListener('click',e=>{
+      const r=strip.getBoundingClientRect();
+      const t=clamp((e.clientX-r.left)/r.width,0,1)*dur;
+      const v=kfValue(o,t,state[p.key]);
+      const kf={t,v};
+      o.keys.push(kf);
+      o.keys.sort((a,b)=>a.t-b.t);
+      kfSel={key:p.key,idx:o.keys.indexOf(kf)};
+      if(!o.on)o.on=true;
+      saveLS();
+      syncStaticSliders();
+      buildKfUI();
+    });
+    o.keys.forEach((k,idx)=>{
+      const d=document.createElement('div');
+      d.className='kf-dot'+(kfSel&&kfSel.key===p.key&&kfSel.idx===idx?' selected':'');
+      d.style.left=((k.t/dur)*100)+'%';
+      d.addEventListener('pointerdown',ev=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        kfSel={key:p.key,idx};
+        strip.querySelectorAll('.kf-dot').forEach(dd=>dd.classList.remove('selected'));
+        d.classList.add('selected');
+        try{ d.setPointerCapture(ev.pointerId); }catch(err){}
+        const move=me=>{
+          const r=strip.getBoundingClientRect();
+          k.t=clamp((me.clientX-r.left)/r.width,0,1)*dur;
+          o.keys.sort((a,b)=>a.t-b.t);
+          d.style.left=((k.t/dur)*100)+'%';
+          buildControls();
+        };
+        const up=()=>{
+          d.removeEventListener('pointermove',move);
+          d.removeEventListener('pointerup',up);
+          saveLS();
+        };
+        d.addEventListener('pointermove',move);
+        d.addEventListener('pointerup',up);
+        buildControls();
+      });
+      strip.appendChild(d);
+    });
+    const ctrl=document.createElement('div');
+    ctrl.className='kf-controls';
+    ctrl.style.display='none';
+    const buildControls=()=>{
+      const sel=(kfSel&&kfSel.key===p.key)?kfSel:null;
+      if(!sel||!o.keys[sel.idx]){
+        ctrl.style.display='none';
+        return;
+      }
+      ctrl.style.display='flex';
+      ctrl.innerHTML='';
+      const k=o.keys[sel.idx];
+      const rng=document.createElement('input');
+      rng.type='range';
+      rng.min=p.min; rng.max=p.max; rng.step=p.step;
+      rng.value=k.v;
+      const val=document.createElement('span');
+      val.className='range-val';
+      const fmt=v=>(p.key==='lineH'?(Math.round(v)/10).toFixed(1):v)+(p.unit||'');
+      val.textContent=fmt(k.v);
+      rng.addEventListener('input',()=>{
+        k.v=parseFloat(rng.value);
+        val.textContent=fmt(k.v);
+        saveLS();
+      });
+      const del=document.createElement('button');
+      del.className='kf-del';
+      del.textContent='Eliminar';
+      del.addEventListener('click',()=>{
+        o.keys.splice(sel.idx,1);
+        kfSel=null;
+        saveLS();
+        buildKfUI();
+      });
+      ctrl.appendChild(rng);
+      ctrl.appendChild(val);
+      ctrl.appendChild(del);
+    };
+    row.appendChild(head);
+    row.appendChild(strip);
+    row.appendChild(ctrl);
+    wrap.appendChild(row);
+    buildControls();
+  });
+}
+function syncStaticSliders(){
+  KF_PROPS.forEach(p=>{
+    const lab=$(p.el+'Label');
+    if(lab){
+      const on=state.kf[p.key]&&state.kf[p.key].on&&state.kf[p.key].keys.length>0;
+      lab.innerHTML=on?p.label+' <span class="kf-on" title="Keyframes activos: este slider edita el keyframe mas cercano al cursor. Haz clic aqui para desactivar los keyframes.">keyframes</span>':p.label;
+    }
+  });
+}
+document.addEventListener('click',e=>{
+  if(e.target&&e.target.classList&&e.target.classList.contains('kf-on')){
+    const lab=e.target.parentElement;
+    const prop=KF_PROPS.find(p=>lab&&lab.id===p.el+'Label');
+    if(prop){
+      state.kf[prop.key].on=false;
+      saveLS();
+      buildKfUI();
+      syncStaticSliders();
+    }
+  }
+});
+
+const HISTORY_MAX=50;
+let history=[], hIndex=0, hLast=0;
+function snapshot(){ return JSON.stringify(state); }
+function pushHistory(){
+  const now=Date.now();
+  const s=snapshot();
+  if(hIndex>=0&&history[hIndex]===s)return;
+  if(now-hLast<400&&hIndex>0){
+    history[hIndex]=s;
+    hLast=now;
+    return;
+  }
+  history=history.slice(0,hIndex+1);
+  history.push(s);
+  if(history.length>HISTORY_MAX)history.shift();
+  hIndex=history.length-1;
+  hLast=now;
+}
+function applySnapshot(s){
+  try{
+    const o=JSON.parse(s);
+    Object.assign(state,o,{playing:false,time:0});
+    if(!state.presetParams)state.presetParams={};
+    if(!state.kf)state.kf=defaultKf();
+    KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
+    kfSel=null;
+    syncUI();
+    buildParamsUI();
+    saveLS(true);
+  }catch(err){}
+}
+function undo(){
+  if(hIndex>0){
+    hIndex--;
+    applySnapshot(history[hIndex]);
+  }
+}
+function redo(){
+  if(hIndex<history.length-1){
+    hIndex++;
+    applySnapshot(history[hIndex]);
+  }
+}
+function resetHistory(){
+  history=[snapshot()];
+  hIndex=0;
+  hLast=0;
+}
+
+function saveLS(noHist){
+  if(!noHist)pushHistory();
   const o=Object.assign({},state,{playing:false,time:0});
   try{ localStorage.setItem('fap-textmotion',JSON.stringify(o)); }catch(err){}
 }
@@ -1138,14 +1459,12 @@ function restoreLS(){
     const o=JSON.parse(raw);
     Object.assign(state,o,{playing:false,time:0});
     if(!state.presetParams)state.presetParams={};
+    if(!state.kf)state.kf=defaultKf();
+    KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
   }catch(err){}
 }
 
 $('txtContent').addEventListener('input',e=>{ state.text=e.target.value; saveLS(); });
-$('customFont').addEventListener('change',e=>{
-  const f=e.target.value.trim();
-  if(f){ state.font=f; loadFont(f); saveLS(); }
-});
 $('fontFamily').addEventListener('change',e=>{
   state.font=e.target.value;
   loadFont(state.font);
@@ -1188,14 +1507,28 @@ $('duration').addEventListener('input',e=>{
   state.duration=v;
   e.target.value=v;
   buildTicks();
+  buildKfUI();
   saveLS();
 });
 $('btnPlay').addEventListener('click',()=>{
   state.playing=!state.playing;
   syncPlayIcon();
 });
+$('btnUndo').addEventListener('click',undo);
+$('btnRedo').addEventListener('click',redo);
 document.addEventListener('keydown',e=>{
-  if(e.code==='Space'&&document.activeElement.tagName!=='TEXTAREA'&&document.activeElement.tagName!=='INPUT'){
+  const tag=document.activeElement&&document.activeElement.tagName;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&tag!=='TEXTAREA'&&tag!=='INPUT'){
+    e.preventDefault();
+    if(e.shiftKey){ redo(); } else { undo(); }
+    return;
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'&&tag!=='TEXTAREA'&&tag!=='INPUT'){
+    e.preventDefault();
+    redo();
+    return;
+  }
+  if(e.code==='Space'&&tag!=='TEXTAREA'&&tag!=='INPUT'){
     e.preventDefault();
     state.playing=!state.playing;
     syncPlayIcon();
@@ -1218,8 +1551,10 @@ window.addEventListener('touchend',()=>scrubbing=false);
 
 $('btnNew').addEventListener('click',()=>{
   if(!confirm('¿Crear un proyecto nuevo? Se perderan los cambios no guardados.'))return;
-  state=Object.assign({},DEFAULT_STATE,{presetParams:{}});
+  state=Object.assign({},DEFAULT_STATE,{presetParams:{},kf:defaultKf()});
   localStorage.removeItem('fap-textmotion');
+  kfSel=null;
+  resetHistory();
   syncUI();
   buildParamsUI();
   loadFont(state.font);
@@ -1243,10 +1578,13 @@ $('fileInput').addEventListener('change',e=>{
       const data=JSON.parse(ev.target.result);
       Object.assign(state,data,{playing:false,time:0});
       if(!state.presetParams)state.presetParams={};
+      if(!state.kf)state.kf=defaultKf();
+      KF_PROPS.forEach(p=>{ if(!state.kf[p.key])state.kf[p.key]={on:false,keys:[]}; });
       syncUI();
       buildParamsUI();
       loadFont(state.font);
-      saveLS();
+      resetHistory();
+      saveLS(true);
     }catch(err){ alert('Archivo de proyecto invalido'); }
   };
   r.readAsText(f);
@@ -1449,17 +1787,24 @@ window.addEventListener('resize',fitCanvas);
 
 (function init(){
   const sel=$('fontFamily');
-  FONTS.forEach(f=>{
-    const o=document.createElement('option');
-    o.value=f;
-    o.textContent=f;
-    o.style.fontFamily='"'+f+'", sans-serif';
-    sel.appendChild(o);
+  Object.keys(FONT_ALL).forEach(g=>{
+    const og=document.createElement('optgroup');
+    og.label=g;
+    FONT_ALL[g].forEach(f=>{
+      const o=document.createElement('option');
+      o.value=f;
+      o.textContent=f;
+      o.style.fontFamily='"'+f+'", sans-serif';
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
   });
   buildPresetList();
   restoreLS();
+  resetHistory();
   buildParamsUI();
   syncUI();
+  preloadAllFonts();
   loadFont(state.font);
   setTimeout(fitCanvas,50);
   requestAnimationFrame(loop);
