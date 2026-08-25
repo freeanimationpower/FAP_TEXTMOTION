@@ -366,6 +366,10 @@ POWER</textarea>
     <div class="field">
       <label id="letterName">Ninguna letra seleccionada</label>
     </div>
+    <div class="field">
+      <label>Fuente de la letra</label>
+      <select id="letterFont"></select>
+    </div>
     <div class="switch-row">
       <span>Color propio</span>
       <div class="switch" id="letterFillSwitch"></div>
@@ -1103,9 +1107,20 @@ function render(ctx,t,forceBg){
   ctx.globalAlpha=opacity/100;
   let charIdx=0;
   const positions=[];
+  let charIdxBase=0;
   lines.forEach((line,li)=>{
     const chars=line.split('');
-    const widths=chars.map(c=>ctx.measureText(c).width);
+    const widths=chars.map((c,ci2)=>{
+      const Lf=S.letters[charIdxBase+ci2];
+      if(Lf&&Lf.font){
+        ctx.save();
+        ctx.font=(S.italic?'italic ':'')+(Lf.weight||S.weight)+' '+size+'px "'+Lf.font+'", sans-serif';
+        const w=ctx.measureText(c).width;
+        ctx.restore();
+        return w;
+      }
+      return ctx.measureText(c).width;
+    });
     const totalW=widths.reduce((a,b)=>a+b,0)+Math.max(0,chars.length-1)*letterSpace;
     let lineX=S.align==='left'?80:(S.align==='right'?W-80-totalW:W/2-totalW/2);
     const y=startY+li*lineHeight;
@@ -1171,6 +1186,9 @@ function render(ctx,t,forceBg){
       }
       const gx=-widths[ci]/2, gy=0;
       const dc=T.char!=null?T.char:ch;
+      if(L&&L.font){
+        ctx.font=(S.italic?'italic ':'')+(L.weight||S.weight)+' '+size+'px "'+L.font+'", sans-serif';
+      }
       if(S.mode==='fill'||S.mode==='both'){ ctx.fillStyle=fill; ctx.fillText(dc,gx,gy); }
       if(S.mode==='stroke'||S.mode==='both'){ ctx.strokeStyle=stroke; ctx.lineWidth=strokeW; ctx.lineJoin='round'; ctx.strokeText(dc,gx,gy); }
       if(T.dupes){
@@ -1189,6 +1207,7 @@ function render(ctx,t,forceBg){
       x+=widths[ci]+letterSpace+(T.extra||0);
       charIdx++;
     });
+    charIdxBase+=chars.length;
   });
   if(pr.id==='typewriter'&&phase==='in'&&totalChars>0){
     const vis=Math.min(totalChars-1,Math.ceil(p*totalChars));
@@ -1675,6 +1694,7 @@ function updateLetterCtrls(){
   const L=(selLetter!=null&&state.letters[selLetter])||{};
   const ch=selLetter!=null?(chars[selLetter]!=null?chars[selLetter]:''):'';
   $('letterName').textContent=selLetter!=null?('Letra '+(selLetter+1)+' ('+(ch===' '?'espacio':ch)+')'):'Ninguna letra seleccionada';
+  $('letterFont').value=L.font||'';
   setSwitch('letterFillSwitch',!!L.fill);
   $('letterColor').value=L.fill||state.fill;
   $('letterSize').value=Math.round((L.size||1)*100);
@@ -1697,6 +1717,20 @@ $('letterFillSwitch').addEventListener('click',()=>{
   if(selLetter==null)return;
   const L=state.letters[selLetter]||(state.letters[selLetter]={});
   if(L.fill){ L.fill=null; } else { L.fill=state.fill; }
+  saveLS();
+  updateLetterCtrls();
+});
+$('letterFont').addEventListener('change',e=>{
+  if(selLetter==null)return;
+  if(!e.target.value){
+    if(state.letters[selLetter]){
+      delete state.letters[selLetter].font;
+      if(!Object.keys(state.letters[selLetter]).length)delete state.letters[selLetter];
+    }
+  }else{
+    letterSet('font',e.target.value);
+    return;
+  }
   saveLS();
   updateLetterCtrls();
 });
@@ -2222,8 +2256,13 @@ function fitCanvas(){
 }
 window.addEventListener('resize',fitCanvas);
 
-(function init(){
-  const sel=$('fontFamily');
+function populateFontSelect(selEl,placeholder){
+  if(placeholder){
+    const o=document.createElement('option');
+    o.value='';
+    o.textContent=placeholder;
+    selEl.appendChild(o);
+  }
   Object.keys(FONT_ALL).forEach(g=>{
     const og=document.createElement('optgroup');
     og.label=g;
@@ -2234,8 +2273,12 @@ window.addEventListener('resize',fitCanvas);
       o.style.fontFamily='"'+f+'", sans-serif';
       og.appendChild(o);
     });
-    sel.appendChild(og);
+    selEl.appendChild(og);
   });
+}
+(function init(){
+  populateFontSelect($('fontFamily'));
+  populateFontSelect($('letterFont'),'Fuente global (la del texto)');
   const osel=$('outPreset');
   const om=document.createElement('option');
   om.value='mirror';
