@@ -256,7 +256,7 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
     }
     details.family summary::-webkit-details-marker { display:none; }
     details.family summary::after { content:"+"; font-weight:800; color:var(--muted); }
-    details.family[open] summary::after { content:"�?""; }
+    details.family[open] summary::after { content:"\2013"; }
     details.family[open] summary { background:var(--yellow4); }
     .kf-row { border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px; }
     .kf-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
