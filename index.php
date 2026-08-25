@@ -1666,26 +1666,49 @@ async function exportVideo(ctx,fps,showBg,wantAlpha){
 
 let ffmpegPromise=null;
 let lastMovFrames=0;
-function loadScript(src){
+const FFMPEG_CDNS=[
+  'https://cdn.jsdelivr.net/npm/',
+  'https://unpkg.com/'
+];
+function loadScriptWithFallback(paths){
   return new Promise((res,rej)=>{
-    const s=document.createElement('script');
-    s.src=src;
-    s.onload=res;
-    s.onerror=()=>rej(new Error('No se pudo cargar '+src));
-    document.head.appendChild(s);
+    let i=0;
+    const tryNext=()=>{
+      if(i>=paths.length){
+        rej(new Error('No se pudo cargar el codificador FFmpeg desde ningun CDN'));
+        return;
+      }
+      const s=document.createElement('script');
+      s.src=paths[i];
+      s.onload=res;
+      s.onerror=()=>{
+        i++;
+        s.remove();
+        tryNext();
+      };
+      document.head.appendChild(s);
+    };
+    tryNext();
   });
 }
 function ensureFfmpeg(){
   if(!ffmpegPromise){
     ffmpegPromise=(async()=>{
-      await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
-      await loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
+      await loadScriptWithFallback(FFMPEG_CDNS.map(c=>c+'@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js'));
+      await loadScriptWithFallback(FFMPEG_CDNS.map(c=>c+'@ffmpeg/util@0.12.1/dist/umd/index.js'));
       const FF=FFmpegWASM.FFmpeg;
       const ff=new FF();
-      await ff.load({
-        coreURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-        wasmURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'
-      });
+      try{
+        await ff.load({
+          coreURL:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+          wasmURL:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'
+        });
+      }catch(err){
+        await ff.load({
+          coreURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+          wasmURL:'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'
+        });
+      }
       return ff;
     })();
     ffmpegPromise.catch(()=>{ ffmpegPromise=null; });
