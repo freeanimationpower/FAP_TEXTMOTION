@@ -273,14 +273,6 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
       vertical-align:middle;
     }
     label .kf-on { margin-top:2px; }
-    .letters-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(26px,1fr)); gap:4px; margin-bottom:8px; }
-    .letter-chip {
-      border:1px solid var(--border2); border-radius:8px; background:var(--white);
-      font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:11px;
-      padding:4px 0; text-align:center; transition:all .15s; min-width:0;
-    }
-    .letter-chip:hover { border-color:var(--ink); }
-    .letter-chip.selected { background:var(--ink); color:var(--yellow) !important; border-color:var(--ink); }
     .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:10px; }
     .preset {
       border:1px solid var(--border2); border-radius:var(--radius-pill);
@@ -374,9 +366,8 @@ if(!isset($_SESSION['email']) && !$dev){ header('Location:/login.php?redirect='.
 POWER</textarea>
     </div>
 
-    <div class="sec-title">Letras</div>
-    <div id="lettersChips" class="letters-grid"></div>
-    <p class="hint">Haz clic en una letra del escenario o en una ficha para editarla de forma individual.</p>
+    <div class="sec-title">Letra seleccionada</div>
+    <p class="hint">Toca una letra en el escenario para seleccionarla. Arrastra la letra para moverla y arrastra el tirador naranja para cambiar su tamano. Clic fuera = deseleccionar.</p>
     <div class="field">
       <label id="letterName">Ninguna letra seleccionada</label>
     </div>
@@ -1014,7 +1005,8 @@ function render(ctx,t,forceBg){
     }
     chars.forEach((ch,ci)=>{
       positions.push({x,y});
-      lastLayout.push({idx:charIdx,x,y,w:widths[ci],h:size});
+      const li={idx:charIdx,x,y,w:widths[ci],h:size};
+      lastLayout.push(li);
       const wIdx=charWord[charIdx];
       const unit=preset.unit==='word'?'word':'char';
       const idx=unit==='word'?Math.max(0,wIdx):charIdx;
@@ -1036,6 +1028,7 @@ function render(ctx,t,forceBg){
       ctx.save();
       const cx=x+widths[ci]/2+(T.dx||0)+(T.kern||0)*(ci-chars.length/2);
       const cy=y+(T.dy||0);
+      li.mx=cx; li.my=cy; li.rot=T.rot||0; li.sx=T.scX||1; li.sy=T.scY||1;
       ctx.translate(cx,cy);
       ctx.rotate((T.rot||0)*Math.PI/180);
       ctx.scale(T.scX||1,T.scY||1);
@@ -1092,6 +1085,36 @@ function render(ctx,t,forceBg){
   ctx.restore();
 }
 
+function drawSelection(ctx){
+  if(selLetter==null)return;
+  const it=lastLayout.find(v=>v.idx===selLetter);
+  if(!it)return;
+  const pad=6;
+  ctx.save();
+  ctx.translate(it.mx,it.my);
+  ctx.rotate((it.rot||0)*Math.PI/180);
+  ctx.scale(it.sx||1,it.sy||1);
+  ctx.lineWidth=2;
+  ctx.strokeStyle='#ff4200';
+  ctx.setLineDash([6,4]);
+  ctx.strokeRect(-it.w/2-pad,-it.h/2-pad,it.w+pad*2,it.h+pad*2);
+  ctx.restore();
+  const a=(it.rot||0)*Math.PI/180;
+  const c=Math.cos(a), s=Math.sin(a);
+  const ex=it.w/2+pad+12, ey=it.h/2+pad+12;
+  const hx=it.mx+(ex*c-ey*s)*(it.sx||1);
+  const hy=it.my+(ex*s+ey*c)*(it.sy||1);
+  ctx.lineWidth=2;
+  ctx.strokeStyle='#ff4200';
+  ctx.fillStyle='#ffffff';
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.arc(hx,hy,7,0,Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+  lastHandle={x:hx,y:hy};
+}
+
 const preview=$('preview');
 const pctx=preview.getContext('2d');
 let lastTime=0;
@@ -1107,6 +1130,7 @@ function loop(now){
   }
   lastTime=now;
   render(pctx,state.time);
+  drawSelection(pctx);
   updateTimeline();
   requestAnimationFrame(loop);
 }
@@ -1270,7 +1294,6 @@ function syncUI(){
   buildTicks();
   syncStaticSliders();
   buildKfUI();
-  buildLettersUI();
   updateLetterCtrls();
 }
 
@@ -1520,27 +1543,9 @@ function resetHistory(){
 }
 
 let selLetter=null;
-function buildLettersUI(){
-  const wrap=$('lettersChips');
-  if(!wrap)return;
-  wrap.innerHTML='';
-  const chars=state.text.replace(/\n/g,'').split('');
-  chars.forEach((ch,i)=>{
-    const b=document.createElement('button');
-    b.className='letter-chip'+(selLetter===i?' selected':'');
-    b.textContent=ch===' '?'sp':ch;
-    const L=state.letters[i];
-    if(L&&L.fill)b.style.color=L.fill;
-    if(L&&L.size)b.style.fontSize=Math.round(11*L.size)+'px';
-    b.title='Letra '+(i+1);
-    b.addEventListener('click',()=>{
-      selLetter=i;
-      buildLettersUI();
-      updateLetterCtrls();
-    });
-    wrap.appendChild(b);
-  });
-}
+let lastHandle=null;
+let dragMode=null;
+let dragStart=null;
 function updateLetterCtrls(){
   const chars=state.text.replace(/\n/g,'').split('');
   const L=(selLetter!=null&&state.letters[selLetter])||{};
@@ -1562,7 +1567,6 @@ function letterSet(key,val){
   if(!state.letters[selLetter])state.letters[selLetter]={};
   state.letters[selLetter][key]=val;
   saveLS();
-  buildLettersUI();
   updateLetterCtrls();
 }
 $('letterFillSwitch').addEventListener('click',()=>{
@@ -1570,7 +1574,6 @@ $('letterFillSwitch').addEventListener('click',()=>{
   const L=state.letters[selLetter]||(state.letters[selLetter]={});
   if(L.fill){ L.fill=null; } else { L.fill=state.fill; }
   saveLS();
-  buildLettersUI();
   updateLetterCtrls();
 });
 $('letterColor').addEventListener('input',e=>{
@@ -1578,7 +1581,6 @@ $('letterColor').addEventListener('input',e=>{
   const L=state.letters[selLetter]||(state.letters[selLetter]={});
   L.fill=e.target.value;
   saveLS();
-  buildLettersUI();
 });
 $('letterSize').addEventListener('input',e=>{ letterSet('size',parseFloat(e.target.value)/100); });
 $('letterRot').addEventListener('input',e=>{ letterSet('rot',parseFloat(e.target.value)); });
@@ -1588,32 +1590,68 @@ $('btnLetterReset').addEventListener('click',()=>{
   if(selLetter==null)return;
   delete state.letters[selLetter];
   saveLS();
-  buildLettersUI();
   updateLetterCtrls();
 });
 $('btnLettersResetAll').addEventListener('click',()=>{
   state.letters={};
   selLetter=null;
+  lastHandle=null;
   saveLS();
-  buildLettersUI();
   updateLetterCtrls();
 });
-preview.addEventListener('pointerdown',e=>{
+function canvasPoint(e){
   const rect=preview.getBoundingClientRect();
-  const cx=(e.clientX-rect.left)*(W/rect.width);
-  const cy=(e.clientY-rect.top)*(H/rect.height);
+  return {
+    x:(e.clientX-rect.left)*(W/rect.width),
+    y:(e.clientY-rect.top)*(H/rect.height)
+  };
+}
+preview.addEventListener('pointerdown',e=>{
+  const p=canvasPoint(e);
+  if(selLetter!=null&&lastHandle&&Math.hypot(p.x-lastHandle.x,p.y-lastHandle.y)<=16){
+    dragMode='resize';
+    const it=lastLayout.find(v=>v.idx===selLetter);
+    dragStart={p,size:(state.letters[selLetter]&&state.letters[selLetter].size)||1,cx:it?it.mx:p.x,cy:it?it.my:p.y};
+    try{ preview.setPointerCapture(e.pointerId); }catch(err){}
+    e.preventDefault();
+    return;
+  }
   let hit=null, bd=1e9;
   lastLayout.forEach(it=>{
-    if(cx>=it.x-6&&cx<=it.x+it.w+6&&Math.abs(cy-it.y)<=it.h/2+10){
-      const d=Math.hypot(cx-(it.x+it.w/2),cy-it.y);
+    if(p.x>=it.x-8&&p.x<=it.x+it.w+8&&Math.abs(p.y-it.y)<=it.h/2+12){
+      const d=Math.hypot(p.x-(it.x+it.w/2),p.y-it.y);
       if(d<bd){ bd=d; hit=it.idx; }
     }
   });
   if(hit!=null){
     selLetter=hit;
-    buildLettersUI();
-    updateLetterCtrls();
+    dragMode='move';
+    const L=state.letters[hit]||{};
+    dragStart={p,dx:L.dx||0,dy:L.dy||0};
+    try{ preview.setPointerCapture(e.pointerId); }catch(err){}
+  }else{
+    selLetter=null;
+    lastHandle=null;
   }
+  updateLetterCtrls();
+});
+preview.addEventListener('pointermove',e=>{
+  if(!dragMode||selLetter==null)return;
+  const p=canvasPoint(e);
+  const L=state.letters[selLetter]||(state.letters[selLetter]={});
+  if(dragMode==='move'){
+    L.dx=Math.round(dragStart.dx+(p.x-dragStart.p.x));
+    L.dy=Math.round(dragStart.dy+(p.y-dragStart.p.y));
+  }else{
+    const c0=Math.max(1,Math.hypot(dragStart.p.x-dragStart.cx,dragStart.p.y-dragStart.cy));
+    const c1=Math.hypot(p.x-dragStart.cx,p.y-dragStart.cy);
+    L.size=clamp(dragStart.size*c1/c0,0.1,5);
+  }
+  updateLetterCtrls();
+});
+preview.addEventListener('pointerup',()=>{
+  if(dragMode){ saveLS(); }
+  dragMode=null;
 });
 
 function saveLS(noHist){
@@ -1637,7 +1675,6 @@ function restoreLS(){
 $('txtContent').addEventListener('input',e=>{
   state.text=e.target.value;
   saveLS();
-  buildLettersUI();
   updateLetterCtrls();
 });
 $('fontFamily').addEventListener('change',e=>{
